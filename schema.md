@@ -416,7 +416,4 @@ POST /api/reco
 
 * `meal.image_asset_id`/`ingredient.image_asset_id`로 1:N 연결 가능 (재사용 허용)
 
----
-
-**본 문서는 초안입니다.** 실제 구현 전 환경/요구 반영해 컬럼 타입과 제약을 다듬고, 마이그레이션 스크립트를 확정하세요.
 
