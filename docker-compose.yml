@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: fitmealor_postgres
+    environment:
+      POSTGRES_USER: fitmealor
+      POSTGRES_PASSWORD: fitmealor
+      POSTGRES_DB: fitmealor
+    ports:
+      - "5432:5432"
+    volumes:
+      - fitmealor_pgdata:/var/lib/postgresql/data
+volumes:
+  fitmealor_pgdata:
+
