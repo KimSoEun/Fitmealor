@@ -14,6 +14,8 @@ load_dotenv()
 # access to the values within the .ini file in use.
 config = context.config
 
+# 환경변수 우선 주입
+db_url = os.getenv("DATABASE_URL")
 if config.get_main_option("sqlalchemy.url", default=None) in (None, "", "sqlite://"):
     db_url = os.getenv("DATABASE_URL")
     if db_url:
