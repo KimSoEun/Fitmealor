@@ -1,28 +1,37 @@
-"""set default uuid()::text on varchar ids
-
-Revision ID: 762af7f8baae
-Revises: 8c5cecec27e8_add_identity_to_integer_pks
-Create Date: 2025-10-15 17:27:38.302725
-
-"""
-from typing import Sequence, Union
-
+# alembic/versions/xxxx_set_default_uuid_text_on_ids.py
 from alembic import op
-import sqlalchemy as sa
 
+revision = "xxxx_set_default_uuid_text_on_ids"
+down_revision = "<init_schema_revision_id>"  # 실제 init 리비전 ID로 교체
+branch_labels = None
+depends_on = None
 
-# revision identifiers, used by Alembic.
-revision: str = '762af7f8baae'
-down_revision: Union[str, Sequence[str], None] = '8c5cecec27e8_add_identity_to_integer_pks'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+TABLES = [
+    "algo_feature_snapshot",
+    "image_asset",
+    "ingredient",
+    "meal",
+    "meal_i18n",
+    "rating_feedback",
+    "recommendation_item",
+    "recommendation_session",
+    "user_account",
+    "user_health_measure",
+    "user_interaction",
+    "user_preference",
+    "user_profile",
+]
 
+def upgrade():
+    # gen_random_uuid() 쓰려면 pgcrypto 확장 필요
+    op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+    for t in TABLES:
+        op.execute(
+            f"ALTER TABLE {t} ALTER COLUMN id SET DEFAULT gen_random_uuid()::text;"
+        )
 
-def upgrade() -> None:
-    """Upgrade schema."""
-    pass
-
-
-def downgrade() -> None:
-    """Downgrade schema."""
-    pass
+def downgrade():
+    for t in TABLES:
+        op.execute(
+            f"ALTER TABLE {t} ALTER COLUMN id DROP DEFAULT;"
+        )
