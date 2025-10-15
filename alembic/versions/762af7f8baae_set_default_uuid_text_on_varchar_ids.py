@@ -1,8 +1,8 @@
 # alembic/versions/xxxx_set_default_uuid_text_on_ids.py
 from alembic import op
 
-revision = "xxxx_set_default_uuid_text_on_ids"
-down_revision = "<init_schema_revision_id>"  # 실제 init 리비전 ID로 교체
+revision = "762af7f8baae_set_default_uuid_text_on_ids"
+down_revision = "<0ab3a5066185>"  # 실제 init 리비전 ID로 교체
 branch_labels = None
 depends_on = None
 
