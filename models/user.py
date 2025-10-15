@@ -19,10 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-# --- SQLAlchemy Base ---------------------------------------------------------
-class Base(DeclarativeBase):
-    pass
-
+from db.core import Base
 
 # --- SQLAlchemy Models -------------------------------------------------------
 class UserAccount(Base):
