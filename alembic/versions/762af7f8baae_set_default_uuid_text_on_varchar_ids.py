@@ -2,7 +2,7 @@
 from alembic import op
 
 revision = "762af7f8baae_set_default_uuid_text_on_ids"
-down_revision = "0ab3a5066185"  # 실제 init 리비전 ID로 교체
+down_revision = "8c5cecec27e8"  # revision 직렬화
 branch_labels = None
 depends_on = None
 
