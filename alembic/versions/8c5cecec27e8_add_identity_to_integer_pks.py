@@ -36,7 +36,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Downgrade schema."""op.execute("ALTER TABLE algo_feature_snapshot ALTER COLUMN id DROP IDENTITY IF EXISTS;")
+    """Downgrade schema."""
+    op.execute("ALTER TABLE algo_feature_snapshot ALTER COLUMN id DROP IDENTITY IF EXISTS;")
     op.execute("ALTER TABLE image_asset ALTER COLUMN id DROP IDENTITY IF EXISTS;")
     op.execute("ALTER TABLE ingredient ALTER COLUMN id DROP IDENTITY IF EXISTS;")
     op.execute("ALTER TABLE meal ALTER COLUMN id DROP IDENTITY IF EXISTS;")
