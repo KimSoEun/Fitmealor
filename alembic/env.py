@@ -18,11 +18,19 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from db.core import Base   # ← 실제 경로에 맞게
 # ③ 모델 모듈들을 "사이드 임포트" 해서 Base.metadata에 등록
 #    (파일명에 맞춰 추가)
-import models.user
-import models.meal
-import models.recommendation
+#import models.user
+#import models.meal
+#import models.recommendation
 # import models.other_models ...
 # ─────────────────────────────────────────────────────────
+
+# ★ 모델 자동 임포트: models 패키지 하위 .py / 서브패키지 전부 로드
+import importlib, pkgutil, models
+def import_all_models():
+    for _, module_name, ispkg in pkgutil.walk_packages(models.__path__, models.__name__ + "."):
+        # 필요하다면 특정 모듈 제외 로직 추가 가능
+        importlib.import_module(module_name)
+import_all_models()
 
 def resolve_url() -> str:
     """우선순위: -x 인자 > 환경변수 > alembic.ini"""
