@@ -4,7 +4,7 @@ from alembic import op
 from typing import Union, Sequence
 
 revision = "762af7f8baae_set_default_uuid_text_on_ids"
-down_revision: Union[str, Sequence[str], None] = '8c5cecec27e8' # revision 직렬화
+down_revision: Union[str, Sequence[str], None] = "8c5cecec27e8_add_identity_to_integer_pks" # revision 직렬화
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
