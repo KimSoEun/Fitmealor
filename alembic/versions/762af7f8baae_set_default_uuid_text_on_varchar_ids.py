@@ -1,7 +1,7 @@
 # alembic/versions/xxxx_set_default_uuid_text_on_ids.py
 from alembic import op
 
-from typing import Union
+from typing import Union, Sequence
 
 revision = "762af7f8baae_set_default_uuid_text_on_ids"
 down_revision: Union[str, Sequence[str], None] = '8c5cecec27e8' # revision 직렬화
