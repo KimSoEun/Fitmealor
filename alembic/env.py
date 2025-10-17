@@ -56,7 +56,8 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """'offline' 모드"""
-    url = resolve_url()  # ← 반드시 resolve_url() 사용
+#    url = resolve_url()  # ← 반드시 resolve_url() 사용
+    url = config.get_main_option("sqlalchemy.url")  # ✅ conftest에서 주입한 URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -71,9 +72,10 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """'online' 모드"""
     # engine_from_config가 ini에서 url을 읽으므로 먼저 주입!
-    url = resolve_url()
-    config.set_main_option("sqlalchemy.url", url)
+#    url = resolve_url()
+#    config.set_main_option("sqlalchemy.url", url)
 
+    # ✅ ini/config의 sqlalchemy.url을 그대로 사용 (conftest가 덮어쓴 값)
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
