@@ -3,7 +3,7 @@ from alembic import op
 
 from typing import Union, Sequence
 
-revision = "762af7f8baae_set_default_uuid_text_on_ids"
+revision = "762af7f8baae"
 down_revision: Union[str, Sequence[str], None] = "0ab3a5066185" # revision 직렬화
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
