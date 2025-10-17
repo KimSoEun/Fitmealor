@@ -33,9 +33,13 @@ def upgrade() -> None:
     ON CONFLICT (code) DO NOTHING;
     """))
     
-    # allergen (code + name_en)
+    # allergen (code + display_name)
     op.execute(sa.text("""
-    INSERT INTO allergen(code, name_en) VALUES
+    ALTER TABLE allergen
+    ALTER COLUMN severity_default SET DEFAULT 0;
+    """))
+    op.execute(sa.text("""
+    INSERT INTO allergen(code, display_name) VALUES
       ('EGG','Egg'),
       ('MLK','Milk'),
       ('NUT','Tree Nuts'),
