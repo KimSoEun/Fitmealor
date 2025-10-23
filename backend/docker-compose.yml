@@ -1,15 +1,92 @@
 services:
-  db:
-    image: postgres:16
-    container_name: fitmealor_postgres
+  gateway:
+    image: traefik:v3.1
+    command:
+      - --api.insecure=true                 # 로컬 대시보드(8080) 활성화
+      - --providers.docker=true             # Docker 라벨 자동 인식
+      - --entrypoints.web.address=:80       # HTTP 진입점
+    ports:
+      - "80:80"                             # http://localhost
+      - "8080:8080"                         # traefik 대시보드 (로컬에서만)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [backend]
+
+  node:
+    build: ./backend/node                   # 예: backend/node/Dockerfile
+    # 로컬에서 직접 접근하고 싶으면 아래 포트 매핑을 켜두면 됨
+    ports:
+      - "3000:3000"
     environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://fitmealor:fitmealor@postgres:5432/fitmealor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      # /api/node/* → node:3000
+      - traefik.http.routers.node.rule=PathPrefix(`/api/node`)
+      - traefik.http.routers.node.entrypoints=web
+      - traefik.http.services.node.loadbalancer.server.port=3000
+    networks: [backend]
+
+  fastapi:
+    build: ./backend/fastapi                # 예: backend/fastapi/Dockerfile
+    # 로컬 직접 접근용
+    ports:
+      - "8000:8000"
+    environment:
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8000
+      - DATABASE_URL=postgresql://fitmealor:fitmealor@postgres:5432/fitmealor
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      # /api/python/* → fastapi:8000
+      - traefik.http.routers.fastapi.rule=PathPrefix(`/api/python`)
+      - traefik.http.routers.fastapi.entrypoints=web
+      - traefik.http.services.fastapi.loadbalancer.server.port=8000
+    networks: [backend]
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: fitmealor
       POSTGRES_USER: fitmealor
       POSTGRES_PASSWORD: fitmealor
-      POSTGRES_DB: fitmealor
-    ports:
-      - "5432:5432"
     volumes:
-      - fitmealor_pgdata:/var/lib/postgresql/data
-volumes:
-  fitmealor_pgdata:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitmealor -d fitmealor || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
 
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+
+networks:
+  backend:
+
+volumes:
+  pgdata:
+  redisdata:
