@@ -52,11 +52,13 @@ Fitmealor는 한국에 거주하는 외국인들이
 
 | 분야 | 사용 기술 |
 | --- | --- |
-| 프론트엔드 | React, Tailwind CSS, i18next |
-| 백엔드 | FastAPI, Node.js (GPT API Wrapping) |
-| AI | OpenAI GPT-4 + Rule-based 추천 |
-| DB | PostgreSQL + ChromaDB |
-| 배포 | Vercel + Docker |
+| 프론트엔드 | React, TypeScript, Tailwind CSS, i18next |
+| 백엔드 | FastAPI (Python), Node.js (TypeScript) |
+| AI/ML | PyTorch, Transformers, OpenAI GPT-4 |
+| OCR | CLOVA OCR, Donut (한글 식품 라벨 인식) |
+| DB | PostgreSQL, ChromaDB, Redis |
+| DevOps | Docker, Kubernetes, AWS |
+| 배포 | Vercel, Docker, K8s |
 
 ---
 

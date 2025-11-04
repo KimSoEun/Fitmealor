@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: fitmealor-postgres
+    environment:
+      POSTGRES_DB: fitmealor
+      POSTGRES_USER: fitmealor_user
+      POSTGRES_PASSWORD: fitmealor_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - fitmealor-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitmealor_user -d fitmealor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fitmealor-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - fitmealor-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # FastAPI Service (AI/OCR)
+  fastapi:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.fastapi
+    container_name: fitmealor-fastapi
+    environment:
+      - DATABASE_URL=postgresql://fitmealor_user:fitmealor_pass@postgres:5432/fitmealor
+      - REDIS_URL=redis://redis:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CLOVA_OCR_SECRET=${CLOVA_OCR_SECRET}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fitmealor-network
+    volumes:
+      - ./backend/fastapi-service:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Node.js API Gateway
+  nodejs:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nodejs
+    container_name: fitmealor-nodejs
+    environment:
+      - DATABASE_URL=postgresql://fitmealor_user:fitmealor_pass@postgres:5432/fitmealor
+      - REDIS_URL=redis://redis:6379
+      - FASTAPI_URL=http://fastapi:8000
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      fastapi:
+        condition: service_started
+    networks:
+      - fitmealor-network
+    volumes:
+      - ./backend/nodejs-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # React Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: fitmealor-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nodejs
+    networks:
+      - fitmealor-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm start
+
+networks:
+  fitmealor-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

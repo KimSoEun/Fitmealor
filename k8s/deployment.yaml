@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fitmealor-fastapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fitmealor-fastapi
+  template:
+    metadata:
+      labels:
+        app: fitmealor-fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: fitmealor/fastapi:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: fitmealor-secrets
+              key: database-url
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fitmealor-secrets
+              key: openai-api-key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fitmealor-nodejs
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fitmealor-nodejs
+  template:
+    metadata:
+      labels:
+        app: fitmealor-nodejs
+    spec:
+      containers:
+      - name: nodejs
+        image: fitmealor/nodejs:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: fitmealor-secrets
+              key: database-url
+        - name: FASTAPI_URL
+          value: "http://fitmealor-fastapi:8000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fitmealor-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fitmealor-frontend
+  template:
+    metadata:
+      labels:
+        app: fitmealor-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: fitmealor/frontend:latest
+        ports:
+        - containerPort: 80

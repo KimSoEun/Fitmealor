@@ -1,0 +1,12 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY backend/nodejs-service/package*.json ./
+RUN npm install
+
+COPY backend/nodejs-service .
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev"]
