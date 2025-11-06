@@ -860,6 +860,10 @@
             filterStats: {
                 en: (total, filtered, safe) => `📊 <strong>${total}</strong> total meals | <strong>${filtered}</strong> filtered out | <strong>${safe}</strong> safe recommendations`,
                 ko: (total, filtered, safe) => `📊 전체 <strong>${total}</strong>개 | 제외 <strong>${filtered}</strong>개 | 안전 추천 <strong>${safe}</strong>개`
+            },
+            chatError: {
+                en: 'Sorry, there was a temporary error.',
+                ko: '죄송합니다. 일시적인 오류가 발생했습니다.'
             }
         };
 
@@ -1315,7 +1319,7 @@
                     indicator.remove();
                 }
 
-                addChatMessage('죄송합니다. 일시적인 오류가 발생했습니다.\nSorry, there was a temporary error.', false);
+                addChatMessage(messages.chatError[currentLanguage], false);
             }
 
             // Re-enable input
