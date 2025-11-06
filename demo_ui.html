@@ -856,6 +856,62 @@
             serverError: {
                 en: 'Please make sure the server is running at http://localhost:8000',
                 ko: '서버가 http://localhost:8000 에서 실행 중인지 확인해주세요'
+            },
+            filterStats: {
+                en: (total, filtered, safe) => `📊 <strong>${total}</strong> total meals | <strong>${filtered}</strong> filtered out | <strong>${safe}</strong> safe recommendations`,
+                ko: (total, filtered, safe) => `📊 전체 <strong>${total}</strong>개 | 제외 <strong>${filtered}</strong>개 | 안전 추천 <strong>${safe}</strong>개`
+            }
+        };
+
+        // Allergen labels by language
+        const allergenLabels = {
+            en: {
+                'eggs': 'Eggs',
+                'milk': 'Milk',
+                'buckwheat': 'Buckwheat',
+                'peanuts': 'Peanuts',
+                'soybeans': 'Soybeans',
+                'wheat': 'Wheat',
+                'mackerel': 'Mackerel',
+                'crab': 'Crab',
+                'shrimp': 'Shrimp',
+                'pork': 'Pork',
+                'peach': 'Peach',
+                'tomato': 'Tomato',
+                'sulfites': 'Sulfites',
+                'walnuts': 'Walnuts',
+                'chicken': 'Chicken',
+                'beef': 'Beef',
+                'squid': 'Squid',
+                'shellfish': 'Shellfish',
+                'pine_nuts': 'Pine Nuts',
+                'mussels': 'Mussels',
+                'abalone': 'Abalone',
+                'oysters': 'Oysters'
+            },
+            ko: {
+                'eggs': '난류',
+                'milk': '우유',
+                'buckwheat': '메밀',
+                'peanuts': '땅콩',
+                'soybeans': '대두',
+                'wheat': '밀',
+                'mackerel': '고등어',
+                'crab': '게',
+                'shrimp': '새우',
+                'pork': '돼지고기',
+                'peach': '복숭아',
+                'tomato': '토마토',
+                'sulfites': '아황산류',
+                'walnuts': '호두',
+                'chicken': '닭고기',
+                'beef': '쇠고기',
+                'squid': '오징어',
+                'shellfish': '조개류',
+                'pine_nuts': '잣',
+                'mussels': '홍합',
+                'abalone': '전복',
+                'oysters': '굴'
             }
         };
 
@@ -865,6 +921,7 @@
         let bodyCondition = ''; // Store body condition input
         let conversationHistory = []; // Store chat history for context
         let userPreferences = {}; // Store ChatGPT-extracted food preferences
+        let currentFilterInfo = null; // Store filter info for language switching
 
         // Check authentication and load user profile
         async function checkAuth() {
@@ -1056,22 +1113,20 @@
 
                 if (allergies.length > 0) {
                     filterInfoDiv.style.display = 'block';
-                    const allergenLabels = {
-                        'peanuts': 'Peanuts / 땅콩',
-                        'tree nuts': 'Tree Nuts / 견과류',
-                        'milk': 'Milk / 우유',
-                        'eggs': 'Eggs / 계란',
-                        'fish': 'Fish / 생선',
-                        'shellfish': 'Shellfish / 갑각류',
-                        'soy': 'Soy / 콩',
-                        'wheat': 'Wheat / 밀',
-                        'sesame': 'Sesame / 참깨'
-                    };
-                    const selectedLabels = allergies.map(a => allergenLabels[a] || a);
+                    const selectedLabels = allergies.map(a => allergenLabels[currentLanguage][a] || a);
                     filterListP.textContent = selectedLabels.join(', ');
-                    filterStatsP.innerHTML = `📊 <strong>${result.total_available}</strong> total meals | <strong>${result.filtered_out}</strong> filtered out | <strong>${result.total_recommendations}</strong> safe recommendations`;
+                    filterStatsP.innerHTML = messages.filterStats[currentLanguage](result.total_available, result.filtered_out, result.total_recommendations);
+
+                    // Store filter info for language switching
+                    currentFilterInfo = {
+                        allergies: allergies,
+                        total_available: result.total_available,
+                        filtered_out: result.filtered_out,
+                        total_recommendations: result.total_recommendations
+                    };
                 } else {
                     filterInfoDiv.style.display = 'none';
+                    currentFilterInfo = null;
                 }
 
                 // Store recommendations for language switching
@@ -1347,6 +1402,20 @@
                     el.placeholder = el.getAttribute('data-placeholder-ko');
                 }
             });
+
+            // Update filter info if it exists
+            if (currentFilterInfo) {
+                const filterListP = document.getElementById('filterList');
+                const filterStatsP = document.getElementById('filterStats');
+
+                const selectedLabels = currentFilterInfo.allergies.map(a => allergenLabels[lang][a] || a);
+                filterListP.textContent = selectedLabels.join(', ');
+                filterStatsP.innerHTML = messages.filterStats[lang](
+                    currentFilterInfo.total_available,
+                    currentFilterInfo.filtered_out,
+                    currentFilterInfo.total_recommendations
+                );
+            }
 
             // Re-render meals if they exist
             renderMeals();
