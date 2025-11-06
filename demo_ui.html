@@ -435,17 +435,13 @@
 
         /* Language toggle switch */
         .language-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
-            z-index: 1000;
             background: rgba(255, 255, 255, 0.95);
             padding: 10px 15px;
             border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .language-switch {
@@ -497,16 +493,6 @@
     </style>
 </head>
 <body>
-    <!-- Language Toggle (Fixed at top-right) -->
-    <div class="language-toggle">
-        <span class="language-label">KO</span>
-        <label class="language-switch">
-            <input type="checkbox" id="languageToggle">
-            <span class="language-slider"></span>
-        </label>
-        <span class="language-label">EN</span>
-    </div>
-
     <div class="container">
         <div class="nav-bar" id="navBar" style="display: none;">
             <div class="nav-links">
@@ -514,6 +500,15 @@
                 <a href="profile.html">👤 Profile / 프로필</a>
             </div>
             <div class="user-info">
+                <!-- Language Toggle -->
+                <div class="language-toggle" style="position: relative; margin-right: 20px;">
+                    <span class="language-label">KO</span>
+                    <label class="language-switch">
+                        <input type="checkbox" id="languageToggle">
+                        <span class="language-slider"></span>
+                    </label>
+                    <span class="language-label">EN</span>
+                </div>
                 <span class="user-name" id="navUserName">User</span>
                 <a href="#" id="navLogoutBtn">🚪 Logout / 로그아웃</a>
             </div>
