@@ -919,6 +919,48 @@
             }
         };
 
+        // Translation dictionary for serving size and origin
+        const translations = {
+            // Origin translations
+            '국내산': 'Domestic',
+            '호주산': 'Australian',
+            '미국산': 'American',
+            '태국산': 'Thai',
+            '노르웨이산': 'Norwegian',
+            '미역': 'Seaweed',
+            '돼지고기': 'Pork',
+            '닭고기': 'Chicken',
+            '쇠고기': 'Beef',
+            '콩': 'Soybean',
+            '쌀': 'Rice',
+            '단호박': 'Sweet Pumpkin',
+            '전복': 'Abalone',
+            '시금치': 'Spinach',
+            '무': 'Radish',
+            '배추': 'Cabbage',
+            '오이': 'Cucumber',
+            '우유': 'Milk',
+            '요거트': 'Yogurt',
+            '치즈': 'Cheese',
+            // Unit translations
+            '봉': 'pack',
+            '개': 'piece'
+        };
+
+        // Function to translate Korean text to English
+        function translateToEnglish(text) {
+            if (!text) return text;
+
+            let translated = text;
+
+            // Replace each Korean word with its English equivalent
+            for (const [korean, english] of Object.entries(translations)) {
+                translated = translated.replace(new RegExp(korean, 'g'), english);
+            }
+
+            return translated;
+        }
+
         // Store the current form data for re-fetching
         let currentFormData = null;
         let currentUser = null;
@@ -1349,8 +1391,8 @@
                     <span class="safe-badge safe">
                         ${currentLanguage === 'en' ? '✅ Safe for your allergies' : '✅ 알레르기 안전'}
                     </span>
-                    ${meal.serving_size ? `<p style="color: #555; font-size: 14px; margin-top: 8px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Serving Size:' : '1회 제공량:'}</strong> ${meal.serving_size}</p>` : ''}
-                    ${meal.origin ? `<p style="color: #555; font-size: 14px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Origin:' : '원산지:'}</strong> ${meal.origin}</p>` : ''}
+                    ${meal.serving_size ? `<p style="color: #555; font-size: 14px; margin-top: 8px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Serving Size:' : '1회 제공량:'}</strong> ${currentLanguage === 'en' ? translateToEnglish(meal.serving_size) : meal.serving_size}</p>` : ''}
+                    ${meal.origin ? `<p style="color: #555; font-size: 14px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Origin:' : '원산지:'}</strong> ${currentLanguage === 'en' ? translateToEnglish(meal.origin) : meal.origin}</p>` : ''}
                     <div class="meal-stats">
                         <div class="stat">
                             <div class="stat-value">${meal.calories}</div>
