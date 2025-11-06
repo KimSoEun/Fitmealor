@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitmealor - 로그인 / Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 450px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            color: #999;
+            position: relative;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        .divider::before {
+            left: 0;
+        }
+        .divider::after {
+            right: 0;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 2.5em;
+            }
+            .header p {
+                font-size: 1em;
+            }
+            .card {
+                padding: 25px;
+            }
+            input {
+                font-size: 16px;
+                padding: 14px;
+            }
+            .btn {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+            label {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .card {
+                padding: 20px;
+            }
+            .link-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥗 Fitmealor</h1>
+            <p>로그인 / Login</p>
+        </div>
+
+        <div class="card">
+            <div id="alertBox" class="alert"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>이메일 / Email</label>
+                    <input type="email" id="email" required placeholder="example@email.com" autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label>비밀번호 / Password</label>
+                    <input type="password" id="password" required placeholder="Enter your password">
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="autoLogin" style="width: auto; margin-right: 8px; cursor: pointer;">
+                        <label for="autoLogin" style="margin: 0; font-weight: 400; cursor: pointer; font-size: 14px;">
+                            자동 로그인 / Keep me signed in
+                        </label>
+                    </div>
+                    <a href="#" id="findAccountBtn" style="color: #667eea; text-decoration: none; font-size: 14px; font-weight: 500;">
+                        아이디/비밀번호 찾기
+                    </a>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    🔐 로그인 / Login
+                </button>
+            </form>
+
+            <div class="divider">OR</div>
+
+            <div class="link-text">
+                계정이 없으신가요? / Don't have an account?<br>
+                <a href="register.html">회원가입하기 / Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        if (localStorage.getItem('fitmealor_token')) {
+            window.location.href = 'demo_ui.html';
+        }
+
+        // Check for saved auto-login credentials
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = localStorage.getItem('fitmealor_auto_email');
+            const savedPassword = localStorage.getItem('fitmealor_auto_password');
+
+            if (savedEmail && savedPassword) {
+                document.getElementById('email').value = savedEmail;
+                document.getElementById('password').value = savedPassword;
+                document.getElementById('autoLogin').checked = true;
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('alertBox');
+            const autoLogin = document.getElementById('autoLogin').checked;
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const data = { email, password };
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ 로그인 중... / Logging in...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ 로그인 성공! / Login successful!', 'success');
+
+                    // Store user info and token
+                    localStorage.setItem('fitmealor_user', JSON.stringify(result.user));
+                    localStorage.setItem('fitmealor_token', result.token);
+
+                    // Handle auto-login
+                    if (autoLogin) {
+                        localStorage.setItem('fitmealor_auto_email', email);
+                        localStorage.setItem('fitmealor_auto_password', password);
+                    } else {
+                        localStorage.removeItem('fitmealor_auto_email');
+                        localStorage.removeItem('fitmealor_auto_password');
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = 'demo_ui.html';
+                    }, 1000);
+                } else {
+                    showAlert('❌ ' + (result.detail || result.message || '로그인에 실패했습니다 / Login failed'), 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '🔐 로그인 / Login';
+                }
+            } catch (error) {
+                showAlert('❌ 서버 연결에 실패했습니다. 서버가 실행 중인지 확인해주세요. / Server connection failed.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔐 로그인 / Login';
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-' + type;
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+        }
+
+        // Find account functionality
+        document.getElementById('findAccountBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const email = prompt('등록된 이메일 주소를 입력하세요 / Enter your registered email:');
+
+            if (!email) return;
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('❌ 올바른 이메일 형식이 아닙니다 / Invalid email format', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/find-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ ' + result.message, 'success');
+                } else {
+                    showAlert('❌ ' + (result.detail || '계정을 찾을 수 없습니다 / Account not found'), 'error');
+                }
+            } catch (error) {
+                // Demo mode: Show saved credentials if exists
+                const savedEmail = localStorage.getItem('fitmealor_auto_email');
+                const savedPassword = localStorage.getItem('fitmealor_auto_password');
+
+                if (savedEmail === email && savedPassword) {
+                    showAlert(`✅ 저장된 비밀번호를 찾았습니다! / Found saved password!\n비밀번호: ${savedPassword}`, 'success');
+                } else {
+                    showAlert('ℹ️ 데모 모드: 이메일이 등록되어 있지 않거나 자동 로그인으로 저장된 정보가 없습니다.\nDemo mode: Email not registered or no auto-login credentials saved.', 'error');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

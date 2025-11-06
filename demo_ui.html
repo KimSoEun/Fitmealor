@@ -520,161 +520,146 @@
         </div>
 
         <div class="card" id="welcomeCard" style="display: none;">
-            <h2 style="color: #667eea; margin-bottom: 15px;">👋 Welcome! / 환영합니다!</h2>
-            <p style="font-size: 1.1em; color: #333; margin-bottom: 20px;">
-                <strong id="welcomeUserName">User</strong>님의 건강 프로필을 기반으로 맞춤 식단을 추천해드립니다.
+            <h2 style="color: #667eea; margin-bottom: 15px;" data-lang-en="👋 Welcome!" data-lang-ko="👋 환영합니다!"></h2>
+            <p style="font-size: 1.1em; color: #333; margin-bottom: 20px;" id="welcomeMessage">
+                <strong id="welcomeUserName">User</strong><span data-lang-en="'s personalized meal recommendations based on your health profile." data-lang-ko="님의 건강 프로필을 기반으로 맞춤 식단을 추천해드립니다."></span>
             </p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
                 <div class="grid">
                     <div>
-                        <p style="color: #666; margin-bottom: 5px;">🎯 Goal / 건강 목표</p>
+                        <p style="color: #666; margin-bottom: 5px;" data-lang-en="🎯 Goal" data-lang-ko="🎯 건강 목표"></p>
                         <p style="font-weight: 600; color: #667eea;" id="welcomeGoal">-</p>
                     </div>
                     <div>
-                        <p style="color: #666; margin-bottom: 5px;">📊 TDEE / 일일 권장 칼로리</p>
+                        <p style="color: #666; margin-bottom: 5px;" data-lang-en="📊 Daily Calories" data-lang-ko="📊 일일 권장 칼로리"></p>
                         <p style="font-weight: 600; color: #667eea;" id="welcomeTDEE">-</p>
                     </div>
                     <div>
-                        <p style="color: #666; margin-bottom: 5px;">⚖️ Current Weight / 현재 체중</p>
+                        <p style="color: #666; margin-bottom: 5px;" data-lang-en="⚖️ Current Weight" data-lang-ko="⚖️ 현재 체중"></p>
                         <p style="font-weight: 600; color: #667eea;" id="welcomeWeight">-</p>
                     </div>
                     <div>
-                        <p style="color: #666; margin-bottom: 5px;">🎯 Target Weight / 목표 체중</p>
+                        <p style="color: #666; margin-bottom: 5px;" data-lang-en="🎯 Target Weight" data-lang-ko="🎯 목표 체중"></p>
                         <p style="font-weight: 600; color: #667eea;" id="welcomeTargetWeight">-</p>
                     </div>
                 </div>
             </div>
-            <p style="color: #666; text-align: center; margin-top: 15px;">
-                오늘의 몸 상태를 아래에 입력해주세요 ⬇️<br>
-                Tell us about your body condition today
-            </p>
+            <p style="color: #666; text-align: center; margin-top: 15px;" data-lang-en="Tell us about your body condition today ⬇️" data-lang-ko="오늘의 몸 상태를 아래에 입력해주세요 ⬇️"></p>
         </div>
 
         <!-- Chat Interface -->
         <div class="card" id="chatCard" style="display: none;">
-            <h2 style="margin-bottom: 15px;">💬 Chat with AI Nutritionist / AI 영양사와 대화하기</h2>
-            <p style="color: #666; margin-bottom: 15px; font-size: 0.95em;">
-                오늘 몸 상태가 어떠신가요? 피곤함, 소화불량, 근육통 등을 자유롭게 말씀해주세요.<br>
-                How are you feeling today? Tell us about fatigue, digestion, muscle pain, etc.
-            </p>
+            <h2 style="margin-bottom: 15px;" data-lang-en="💬 Chat with AI Nutritionist" data-lang-ko="💬 AI 영양사와 대화하기"></h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: 0.95em;" data-lang-en="How are you feeling today? Tell us about fatigue, digestion, muscle pain, etc." data-lang-ko="오늘 몸 상태가 어떠신가요? 피곤함, 소화불량, 근육통 등을 자유롭게 말씀해주세요."></p>
 
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
-                    <div class="chat-message assistant">
-                        👋 안녕하세요! 저는 Fitmealor의 AI 영양사입니다.<br>
-                        오늘 몸 상태가 어떠신가요? 먹고 싶은 음식도 자유롭게 말씀해주세요!<br><br>
-                        Hello! I'm Fitmealor's AI nutritionist.<br>
-                        How are you feeling today? Feel free to tell me what you'd like to eat!
-                    </div>
+                    <div class="chat-message assistant" id="initialChatMessage" data-lang-en="👋 Hello! I'm Fitmealor's AI nutritionist. How are you feeling today? Feel free to tell me what you'd like to eat!" data-lang-ko="👋 안녕하세요! 저는 Fitmealor의 AI 영양사입니다. 오늘 몸 상태가 어떠신가요? 먹고 싶은 음식도 자유롭게 말씀해주세요!"></div>
                 </div>
 
                 <div class="chat-input-group">
                     <input type="text"
                            class="chat-input"
                            id="chatInput"
-                           placeholder="예: 오늘 피곤해요. 매운 음식 먹고 싶어요 / e.g., I'm tired today. I want something spicy"
+                           data-placeholder-en="e.g., I'm tired today. I want something spicy"
+                           data-placeholder-ko="예: 오늘 피곤해요. 매운 음식 먹고 싶어요"
                            maxlength="300">
-                    <button class="chat-send-btn" id="chatSendBtn">
-                        💬 Send / 전송
-                    </button>
+                    <button class="chat-send-btn" id="chatSendBtn" data-lang-en="💬 Send" data-lang-ko="💬 전송"></button>
                 </div>
             </div>
         </div>
 
         <div class="card" id="allergenFilterCard" style="display: none;">
-            <h2 style="margin-bottom: 20px;">🚫 Allergen Filters / 알러지 필터</h2>
-            <p style="color: #666; margin-bottom: 15px;">
-                알러지가 있는 항목을 선택하면 해당 성분이 포함된 식단은 제외됩니다.<br>
-                Select allergens to exclude meals containing those ingredients.
-            </p>
+            <h2 style="margin-bottom: 20px;" data-lang-en="🚫 Allergen Filters" data-lang-ko="🚫 알러지 필터"></h2>
+            <p style="color: #666; margin-bottom: 15px;" data-lang-en="Select allergens to exclude meals containing those ingredients." data-lang-ko="알러지가 있는 항목을 선택하면 해당 성분이 포함된 식단은 제외됩니다."></p>
             <div class="allergen-checkboxes">
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-eggs" value="eggs" class="allergen-filter-checkbox">
-                    <label for="filter-eggs">Eggs / 난류</label>
+                    <label for="filter-eggs" data-lang-en="Eggs" data-lang-ko="난류"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-milk" value="milk" class="allergen-filter-checkbox">
-                    <label for="filter-milk">Milk / 우유</label>
+                    <label for="filter-milk" data-lang-en="Milk" data-lang-ko="우유"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-buckwheat" value="buckwheat" class="allergen-filter-checkbox">
-                    <label for="filter-buckwheat">Buckwheat / 메밀</label>
+                    <label for="filter-buckwheat" data-lang-en="Buckwheat" data-lang-ko="메밀"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-peanuts" value="peanuts" class="allergen-filter-checkbox">
-                    <label for="filter-peanuts">Peanuts / 땅콩</label>
+                    <label for="filter-peanuts" data-lang-en="Peanuts" data-lang-ko="땅콩"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-soybeans" value="soybeans" class="allergen-filter-checkbox">
-                    <label for="filter-soybeans">Soybeans / 대두</label>
+                    <label for="filter-soybeans" data-lang-en="Soybeans" data-lang-ko="대두"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-wheat" value="wheat" class="allergen-filter-checkbox">
-                    <label for="filter-wheat">Wheat / 밀</label>
+                    <label for="filter-wheat" data-lang-en="Wheat" data-lang-ko="밀"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-mackerel" value="mackerel" class="allergen-filter-checkbox">
-                    <label for="filter-mackerel">Mackerel / 고등어</label>
+                    <label for="filter-mackerel" data-lang-en="Mackerel" data-lang-ko="고등어"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-crab" value="crab" class="allergen-filter-checkbox">
-                    <label for="filter-crab">Crab / 게</label>
+                    <label for="filter-crab" data-lang-en="Crab" data-lang-ko="게"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-shrimp" value="shrimp" class="allergen-filter-checkbox">
-                    <label for="filter-shrimp">Shrimp / 새우</label>
+                    <label for="filter-shrimp" data-lang-en="Shrimp" data-lang-ko="새우"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-pork" value="pork" class="allergen-filter-checkbox">
-                    <label for="filter-pork">Pork / 돼지고기</label>
+                    <label for="filter-pork" data-lang-en="Pork" data-lang-ko="돼지고기"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-peach" value="peach" class="allergen-filter-checkbox">
-                    <label for="filter-peach">Peach / 복숭아</label>
+                    <label for="filter-peach" data-lang-en="Peach" data-lang-ko="복숭아"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-tomato" value="tomato" class="allergen-filter-checkbox">
-                    <label for="filter-tomato">Tomato / 토마토</label>
+                    <label for="filter-tomato" data-lang-en="Tomato" data-lang-ko="토마토"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-sulfites" value="sulfites" class="allergen-filter-checkbox">
-                    <label for="filter-sulfites">Sulfites / 아황산류</label>
+                    <label for="filter-sulfites" data-lang-en="Sulfites" data-lang-ko="아황산류"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-walnuts" value="walnuts" class="allergen-filter-checkbox">
-                    <label for="filter-walnuts">Walnuts / 호두</label>
+                    <label for="filter-walnuts" data-lang-en="Walnuts" data-lang-ko="호두"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-chicken" value="chicken" class="allergen-filter-checkbox">
-                    <label for="filter-chicken">Chicken / 닭고기</label>
+                    <label for="filter-chicken" data-lang-en="Chicken" data-lang-ko="닭고기"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-beef" value="beef" class="allergen-filter-checkbox">
-                    <label for="filter-beef">Beef / 쇠고기</label>
+                    <label for="filter-beef" data-lang-en="Beef" data-lang-ko="쇠고기"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-squid" value="squid" class="allergen-filter-checkbox">
-                    <label for="filter-squid">Squid / 오징어</label>
+                    <label for="filter-squid" data-lang-en="Squid" data-lang-ko="오징어"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-shellfish" value="shellfish" class="allergen-filter-checkbox">
-                    <label for="filter-shellfish">Shellfish / 조개류</label>
+                    <label for="filter-shellfish" data-lang-en="Shellfish" data-lang-ko="조개류"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-pine-nuts" value="pine_nuts" class="allergen-filter-checkbox">
-                    <label for="filter-pine-nuts">Pine Nuts / 잣</label>
+                    <label for="filter-pine-nuts" data-lang-en="Pine Nuts" data-lang-ko="잣"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-mussels" value="mussels" class="allergen-filter-checkbox">
-                    <label for="filter-mussels">Mussels / 홍합</label>
+                    <label for="filter-mussels" data-lang-en="Mussels" data-lang-ko="홍합"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-abalone" value="abalone" class="allergen-filter-checkbox">
-                    <label for="filter-abalone">Abalone / 전복</label>
+                    <label for="filter-abalone" data-lang-en="Abalone" data-lang-ko="전복"></label>
                 </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="filter-oysters" value="oysters" class="allergen-filter-checkbox">
-                    <label for="filter-oysters">Oysters / 굴</label>
+                    <label for="filter-oysters" data-lang-en="Oysters" data-lang-ko="굴"></label>
                 </div>
             </div>
         </div>
@@ -828,20 +813,20 @@
         </div>
 
         <div id="results" class="card">
-            <h2 style="margin-bottom: 20px;">Recommended Meals / 추천 식단</h2>
+            <h2 style="margin-bottom: 20px;" data-lang-en="Recommended Meals" data-lang-ko="추천 식단"></h2>
 
             <!-- Recommendation Reason -->
             <div id="recommendationReason" class="recommendation-reason" style="display: none;">
-                <h3>💡 Why these meals? / 왜 이 식단일까요?</h3>
+                <h3 data-lang-en="💡 Why these meals?" data-lang-ko="💡 왜 이 식단일까요?"></h3>
                 <p id="reasonText"></p>
             </div>
 
             <div id="tdeeInfo" style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h3 style="color: #1976d2;">📊 Your Daily Calorie Target</h3>
+                <h3 style="color: #1976d2;" data-lang-en="📊 Your Daily Calorie Target" data-lang-ko="📊 일일 권장 칼로리"></h3>
                 <p id="tdeeValue" style="font-size: 24px; font-weight: 700; color: #1976d2; margin-top: 10px;"></p>
             </div>
             <div id="filterInfo" class="filter-info" style="display: none;">
-                <strong>🔍 Active Filters:</strong>
+                <strong data-lang-en="🔍 Active Filters:" data-lang-ko="🔍 활성 필터:"></strong>
                 <p id="filterList" style="margin-top: 5px;"></p>
                 <p id="filterStats" style="margin-top: 10px; font-size: 14px;"></p>
             </div>
@@ -853,6 +838,26 @@
         // Language management
         let currentLanguage = localStorage.getItem('fitmealor_language') || 'ko';
         let currentRecommendations = null; // Store recommendations for language switching
+
+        // Language message templates
+        const messages = {
+            loading: {
+                en: '⏳ AI is analyzing your personalized meal plan...',
+                ko: '⏳ AI가 맞춤 식단을 분석하는 중입니다...'
+            },
+            noMeals: {
+                en: 'No safe meals found with current filters. Try removing some allergen filters.',
+                ko: '현재 필터로는 안전한 식단을 찾을 수 없습니다. 알러지 필터를 일부 제거해보세요.'
+            },
+            error: {
+                en: '❌ Error: ',
+                ko: '❌ 오류: '
+            },
+            serverError: {
+                en: 'Please make sure the server is running at http://localhost:8000',
+                ko: '서버가 http://localhost:8000 에서 실행 중인지 확인해주세요'
+            }
+        };
 
         // Store the current form data for re-fetching
         let currentFormData = null;
@@ -1020,7 +1025,7 @@
 
             // Show loading
             document.getElementById('results').style.display = 'block';
-            document.getElementById('mealsContainer').innerHTML = '<div class="loading">⏳ AI is analyzing your personalized meal plan... / AI가 맞춤 식단을 분석하는 중입니다...</div>';
+            document.getElementById('mealsContainer').innerHTML = `<div class="loading">${messages.loading[currentLanguage]}</div>`;
 
             try {
                 const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
@@ -1117,13 +1122,13 @@
                 `).join('');
 
                 document.getElementById('mealsContainer').innerHTML = mealsHTML ||
-                    '<div style="text-align: center; padding: 40px; color: #666;">No safe meals found with current filters. Try removing some allergen filters.</div>';
+                    `<div style="text-align: center; padding: 40px; color: #666;">${messages.noMeals[currentLanguage]}</div>`;
 
             } catch (error) {
                 document.getElementById('mealsContainer').innerHTML = `
                     <div style="color: #d32f2f; padding: 20px; text-align: center;">
-                        ❌ Error: ${error.message}<br>
-                        Please make sure the server is running at http://localhost:8000
+                        ${messages.error[currentLanguage]}${error.message}<br>
+                        ${messages.serverError[currentLanguage]}
                     </div>
                 `;
             }
@@ -1331,6 +1336,15 @@
                     el.textContent = el.getAttribute('data-lang-en');
                 } else {
                     el.textContent = el.getAttribute('data-lang-ko');
+                }
+            });
+
+            // Update all input placeholders with data-placeholder attributes
+            document.querySelectorAll('[data-placeholder-en][data-placeholder-ko]').forEach(el => {
+                if (lang === 'en') {
+                    el.placeholder = el.getAttribute('data-placeholder-en');
+                } else {
+                    el.placeholder = el.getAttribute('data-placeholder-ko');
                 }
             });
 
