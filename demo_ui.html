@@ -432,9 +432,81 @@
                 transform: translateY(-10px);
             }
         }
+
+        /* Language toggle switch */
+        .language-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 15px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .language-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 28px;
+        }
+
+        .language-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .language-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: 0.4s;
+            border-radius: 28px;
+        }
+
+        .language-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .language-switch input:checked + .language-slider:before {
+            transform: translateX(32px);
+        }
+
+        .language-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
+    <!-- Language Toggle (Fixed at top-right) -->
+    <div class="language-toggle">
+        <span class="language-label">KO</span>
+        <label class="language-switch">
+            <input type="checkbox" id="languageToggle">
+            <span class="language-slider"></span>
+        </label>
+        <span class="language-label">EN</span>
+    </div>
+
     <div class="container">
         <div class="nav-bar" id="navBar" style="display: none;">
             <div class="nav-links">
@@ -784,6 +856,10 @@
     </div>
 
     <script>
+        // Language management
+        let currentLanguage = localStorage.getItem('fitmealor_language') || 'ko';
+        let currentRecommendations = null; // Store recommendations for language switching
+
         // Store the current form data for re-fetching
         let currentFormData = null;
         let currentUser = null;
@@ -999,47 +1075,49 @@
                     filterInfoDiv.style.display = 'none';
                 }
 
+                // Store recommendations for language switching
+                currentRecommendations = result.recommendations;
+
                 // Display meals
                 const mealsHTML = result.recommendations.map(meal => `
                     <div class="meal-card">
-                        <h3>${meal.name}${meal.name_en ? `<br><span style="font-size: 0.85em; color: #888; font-weight: 400;">${meal.name_en}</span>` : ''}</h3>
+                        <h3>${currentLanguage === 'en' ? (meal.name_en || meal.name) : meal.name}</h3>
                         <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                             ${meal.brand ? `<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">🏢 ${meal.brand}</span>` : ''}
                             ${meal.category ? `<span style="background: #e3f2fd; color: #1976d2; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">📦 ${meal.category}</span>` : ''}
                         </div>
                         <span class="safe-badge safe">
-                            ✅ Safe for your allergies
+                            ${currentLanguage === 'en' ? '✅ Safe for your allergies' : '✅ 알레르기 안전'}
                         </span>
-                        ${meal.serving_size ? `<p style="color: #555; font-size: 14px; margin-top: 8px; margin-bottom: 15px;"><strong>Serving Size / 1회 제공량:</strong> ${meal.serving_size}</p>` : ''}
-                        ${meal.origin ? `<p style="color: #555; font-size: 14px; margin-bottom: 15px;"><strong>Origin / 원산지:</strong> ${meal.origin}</p>` : ''}
+                        ${meal.serving_size ? `<p style="color: #555; font-size: 14px; margin-top: 8px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Serving Size:' : '1회 제공량:'}</strong> ${meal.serving_size}</p>` : ''}
+                        ${meal.origin ? `<p style="color: #555; font-size: 14px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Origin:' : '원산지:'}</strong> ${meal.origin}</p>` : ''}
                         <div class="meal-stats">
                             <div class="stat">
                                 <div class="stat-value">${meal.calories}</div>
-                                <div class="stat-label">Calories</div>
+                                <div class="stat-label">${currentLanguage === 'en' ? 'Calories' : '칼로리'}</div>
                             </div>
                             <div class="stat">
                                 <div class="stat-value">${meal.protein_g}g</div>
-                                <div class="stat-label">Protein</div>
+                                <div class="stat-label">${currentLanguage === 'en' ? 'Protein' : '단백질'}</div>
                             </div>
                             <div class="stat">
                                 <div class="stat-value">${meal.carbs_g}g</div>
-                                <div class="stat-label">Carbs</div>
+                                <div class="stat-label">${currentLanguage === 'en' ? 'Carbs' : '탄수화물'}</div>
                             </div>
                             <div class="stat">
                                 <div class="stat-value">${meal.fat_g}g</div>
-                                <div class="stat-label">Fat</div>
+                                <div class="stat-label">${currentLanguage === 'en' ? 'Fat' : '지방'}</div>
                             </div>
                             ${meal.sodium_mg ? `<div class="stat">
                                 <div class="stat-value">${meal.sodium_mg}mg</div>
-                                <div class="stat-label">Sodium</div>
+                                <div class="stat-label">${currentLanguage === 'en' ? 'Sodium' : '나트륨'}</div>
                             </div>` : ''}
                         </div>
                         <p style="color: #666; line-height: 1.6;">
-                            <strong>🇺🇸 English:</strong> ${meal.explanation_en}<br>
-                            <strong>🇰🇷 Korean:</strong> ${meal.explanation_ko}
+                            ${currentLanguage === 'en' ? meal.explanation_en : meal.explanation_ko}
                         </p>
                         <p style="margin-top: 10px; color: #667eea; font-weight: 600;">
-                            AI Score: ${meal.score}/100
+                            ${currentLanguage === 'en' ? 'AI Score:' : 'AI 점수:'} ${meal.score}/100
                         </p>
                     </div>
                 `).join('');
@@ -1198,6 +1276,74 @@
                 sendChatMessage();
             }
         });
+
+        // Function to re-render meals with current language
+        function renderMeals() {
+            if (!currentRecommendations) return;
+
+            const mealsHTML = currentRecommendations.map(meal => `
+                <div class="meal-card">
+                    <h3>${currentLanguage === 'en' ? (meal.name_en || meal.name) : meal.name}</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                        ${meal.brand ? `<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">🏢 ${meal.brand}</span>` : ''}
+                        ${meal.category ? `<span style="background: #e3f2fd; color: #1976d2; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">📦 ${meal.category}</span>` : ''}
+                    </div>
+                    <span class="safe-badge safe">
+                        ${currentLanguage === 'en' ? '✅ Safe for your allergies' : '✅ 알레르기 안전'}
+                    </span>
+                    ${meal.serving_size ? `<p style="color: #555; font-size: 14px; margin-top: 8px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Serving Size:' : '1회 제공량:'}</strong> ${meal.serving_size}</p>` : ''}
+                    ${meal.origin ? `<p style="color: #555; font-size: 14px; margin-bottom: 15px;"><strong>${currentLanguage === 'en' ? 'Origin:' : '원산지:'}</strong> ${meal.origin}</p>` : ''}
+                    <div class="meal-stats">
+                        <div class="stat">
+                            <div class="stat-value">${meal.calories}</div>
+                            <div class="stat-label">${currentLanguage === 'en' ? 'Calories' : '칼로리'}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${meal.protein_g}g</div>
+                            <div class="stat-label">${currentLanguage === 'en' ? 'Protein' : '단백질'}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${meal.carbs_g}g</div>
+                            <div class="stat-label">${currentLanguage === 'en' ? 'Carbs' : '탄수화물'}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${meal.fat_g}g</div>
+                            <div class="stat-label">${currentLanguage === 'en' ? 'Fat' : '지방'}</div>
+                        </div>
+                        ${meal.sodium_mg ? `<div class="stat">
+                            <div class="stat-value">${meal.sodium_mg}mg</div>
+                            <div class="stat-label">${currentLanguage === 'en' ? 'Sodium' : '나트륨'}</div>
+                        </div>` : ''}
+                    </div>
+                    <p style="color: #666; line-height: 1.6;">
+                        ${currentLanguage === 'en' ? meal.explanation_en : meal.explanation_ko}
+                    </p>
+                    <p style="margin-top: 10px; color: #667eea; font-weight: 600;">
+                        ${currentLanguage === 'en' ? 'AI Score:' : 'AI 점수:'} ${meal.score}/100
+                    </p>
+                </div>
+            `).join('');
+
+            document.getElementById('mealsContainer').innerHTML = mealsHTML;
+        }
+
+        // Language toggle event listener
+        const languageToggle = document.getElementById('languageToggle');
+        if (languageToggle) {
+            // Set initial state
+            if (currentLanguage === 'en') {
+                languageToggle.checked = true;
+            }
+
+            // Listen for toggle changes
+            languageToggle.addEventListener('change', (e) => {
+                currentLanguage = e.target.checked ? 'en' : 'ko';
+                localStorage.setItem('fitmealor_language', currentLanguage);
+
+                // Re-render meals if they exist
+                renderMeals();
+            });
+        }
     </script>
 </body>
 </html>
