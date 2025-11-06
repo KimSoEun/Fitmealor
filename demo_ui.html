@@ -496,12 +496,12 @@
     <div class="container">
         <div class="nav-bar" id="navBar" style="display: none;">
             <div class="nav-links">
-                <a href="demo_ui.html">🏠 Home / 홈</a>
-                <a href="profile.html">👤 Profile / 프로필</a>
+                <a href="demo_ui.html" data-lang-en="🏠 Home" data-lang-ko="🏠 홈"></a>
+                <a href="profile.html" data-lang-en="👤 Profile" data-lang-ko="👤 프로필"></a>
             </div>
             <div class="user-info">
                 <span class="user-name" id="navUserName">User</span>
-                <a href="#" id="navLogoutBtn">🚪 Logout / 로그아웃</a>
+                <a href="#" id="navLogoutBtn" data-lang-en="🚪 Logout" data-lang-ko="🚪 로그아웃"></a>
                 <!-- Language Toggle -->
                 <div class="language-toggle" style="position: relative; margin-left: 20px;">
                     <span class="language-label">KO</span>
@@ -516,8 +516,7 @@
 
         <div class="header">
             <h1>🥗 Fitmealor</h1>
-            <p>AI-Powered Meal Recommendations for Foreigners in Korea</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">외국인을 위한 AI 기반 식단 추천 서비스</p>
+            <p data-lang-en="AI-Powered Meal Recommendations for Foreigners in Korea" data-lang-ko="외국인을 위한 AI 기반 식단 추천 서비스"></p>
         </div>
 
         <div class="card" id="welcomeCard" style="display: none;">
@@ -1322,6 +1321,23 @@
             document.getElementById('mealsContainer').innerHTML = mealsHTML;
         }
 
+        // Function to update all UI text based on language
+        function updateLanguage() {
+            const lang = currentLanguage;
+
+            // Update all elements with data-lang attributes
+            document.querySelectorAll('[data-lang-en][data-lang-ko]').forEach(el => {
+                if (lang === 'en') {
+                    el.textContent = el.getAttribute('data-lang-en');
+                } else {
+                    el.textContent = el.getAttribute('data-lang-ko');
+                }
+            });
+
+            // Re-render meals if they exist
+            renderMeals();
+        }
+
         // Language toggle event listener
         const languageToggle = document.getElementById('languageToggle');
         if (languageToggle) {
@@ -1330,13 +1346,16 @@
                 languageToggle.checked = true;
             }
 
+            // Apply initial language
+            updateLanguage();
+
             // Listen for toggle changes
             languageToggle.addEventListener('change', (e) => {
                 currentLanguage = e.target.checked ? 'en' : 'ko';
                 localStorage.setItem('fitmealor_language', currentLanguage);
 
-                // Re-render meals if they exist
-                renderMeals();
+                // Update all UI text
+                updateLanguage();
             });
         }
     </script>
