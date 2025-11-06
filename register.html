@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitmealor - Sign Up / 회원가입</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .section-title:first-child {
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .required {
+            color: #d32f2f;
+            margin-left: 3px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .allergen-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .checkbox-item:hover {
+            background: #e9ecef;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .checkbox-item label {
+            margin: 0;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .error-text {
+            font-size: 12px;
+            color: #d32f2f;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        .error-text::before {
+            content: "⚠️ ";
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .header p {
+                font-size: 0.9em;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .allergen-checkboxes {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+            .checkbox-item {
+                padding: 8px;
+            }
+            .checkbox-item label {
+                font-size: 12px;
+            }
+            input, select {
+                font-size: 16px;
+                padding: 14px;
+            }
+            .btn {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+            .section-title {
+                font-size: 1.1em;
+            }
+            label {
+                font-size: 13px;
+            }
+            .help-text {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .card {
+                padding: 15px;
+            }
+            .allergen-checkboxes {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥗 Fitmealor</h1>
+            <p>Sign Up / 회원가입</p>
+        </div>
+
+        <div class="card">
+            <div class="link-text" style="margin-bottom: 30px;">
+                Already have an account? / 이미 계정이 있으신가요?
+                <a href="login.html">Login / 로그인</a>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <form id="registerForm">
+                <!-- Account Information / 계정 정보 -->
+                <div class="section-title">📧 Account Information / 계정 정보</div>
+
+                <div class="form-group">
+                    <label>Email / 이메일<span class="required">*</span></label>
+                    <input type="text" id="email" required placeholder="example@email.com" inputmode="email" lang="en">
+                    <div class="error-text" id="emailError" style="display: none;"></div>
+                    <div class="help-text">Please use English letters only / 영문자만 입력해주세요</div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Password / 비밀번호<span class="required">*</span></label>
+                        <input type="password" id="password" required placeholder="Example123!">
+                        <div class="error-text" id="passwordError" style="display: none;"></div>
+                        <div class="help-text">Must include: English letters, numbers, and special characters (!@#$%^&* etc.) / 영문자, 숫자, 특수문자 포함 필수</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password / 비밀번호 확인<span class="required">*</span></label>
+                        <input type="password" id="passwordConfirm" required placeholder="Re-enter password">
+                        <div class="error-text" id="passwordConfirmError" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Name / 이름<span class="required">*</span></label>
+                    <input type="text" id="name" required placeholder="홍길동 / John Doe">
+                </div>
+
+                <!-- Health Profile / 건강 프로필 -->
+                <div class="section-title">💪 Health Profile / 건강 프로필</div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Age / 나이<span class="required">*</span></label>
+                        <input type="number" id="age" required min="1" max="120" placeholder="28">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender / 성별</label>
+                        <select id="gender">
+                            <option value="unspecified">Prefer not to say / 미선택</option>
+                            <option value="male">Male / 남성</option>
+                            <option value="female">Female / 여성</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Height / 키 (cm)<span class="required">*</span></label>
+                        <input type="number" id="height" required min="100" max="250" step="0.1" placeholder="175">
+                    </div>
+                    <div class="form-group">
+                        <label>Weight / 체중 (kg)<span class="required">*</span></label>
+                        <input type="number" id="weight" required min="30" max="300" step="0.1" placeholder="70">
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Target Weight / 목표 체중 (kg)<span class="required">*</span></label>
+                        <input type="number" id="targetWeight" required min="30" max="300" step="0.1" placeholder="65">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Level / 활동량<span class="required">*</span></label>
+                        <select id="activity" required>
+                            <option value="">Select / 선택하세요</option>
+                            <option value="sedentary">Sedentary / 비활동적</option>
+                            <option value="light">Light / 가벼운 활동</option>
+                            <option value="moderate">Moderate / 보통</option>
+                            <option value="active">Active / 활동적</option>
+                            <option value="very_active">Very Active / 매우 활동적</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Health Goal / 건강 목표<span class="required">*</span></label>
+                    <select id="goal" required>
+                        <option value="">Select / 선택하세요</option>
+                        <option value="lose_weight">Lose Weight / 체중 감량</option>
+                        <option value="maintain">Maintain / 유지</option>
+                        <option value="gain_muscle">Gain Muscle / 근육 증가</option>
+                        <option value="bulk_up">Bulk Up / 벌크업</option>
+                    </select>
+                </div>
+
+                <!-- Allergy Information / 알레르기 정보 -->
+                <div class="section-title">🚫 Allergy Information / 알레르기 정보</div>
+                <div class="help-text" style="margin-bottom: 15px;">
+                    Select all allergens you have / 알레르기가 있는 항목을 모두 선택해주세요
+                </div>
+
+                <div class="allergen-checkboxes">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-eggs" value="eggs" class="allergen-checkbox">
+                        <label for="allergy-eggs">Eggs / 난류</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-milk" value="milk" class="allergen-checkbox">
+                        <label for="allergy-milk">Milk / 우유</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-buckwheat" value="buckwheat" class="allergen-checkbox">
+                        <label for="allergy-buckwheat">Buckwheat / 메밀</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-peanuts" value="peanuts" class="allergen-checkbox">
+                        <label for="allergy-peanuts">Peanuts / 땅콩</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-soybeans" value="soybeans" class="allergen-checkbox">
+                        <label for="allergy-soybeans">Soybeans / 대두</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-wheat" value="wheat" class="allergen-checkbox">
+                        <label for="allergy-wheat">Wheat / 밀</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-mackerel" value="mackerel" class="allergen-checkbox">
+                        <label for="allergy-mackerel">Mackerel / 고등어</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-crab" value="crab" class="allergen-checkbox">
+                        <label for="allergy-crab">Crab / 게</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-shrimp" value="shrimp" class="allergen-checkbox">
+                        <label for="allergy-shrimp">Shrimp / 새우</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-pork" value="pork" class="allergen-checkbox">
+                        <label for="allergy-pork">Pork / 돼지고기</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-peach" value="peach" class="allergen-checkbox">
+                        <label for="allergy-peach">Peach / 복숭아</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-tomato" value="tomato" class="allergen-checkbox">
+                        <label for="allergy-tomato">Tomato / 토마토</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-sulfites" value="sulfites" class="allergen-checkbox">
+                        <label for="allergy-sulfites">Sulfites / 아황산류</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-walnuts" value="walnuts" class="allergen-checkbox">
+                        <label for="allergy-walnuts">Walnuts / 호두</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-chicken" value="chicken" class="allergen-checkbox">
+                        <label for="allergy-chicken">Chicken / 닭고기</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-beef" value="beef" class="allergen-checkbox">
+                        <label for="allergy-beef">Beef / 쇠고기</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-squid" value="squid" class="allergen-checkbox">
+                        <label for="allergy-squid">Squid / 오징어</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-shellfish" value="shellfish" class="allergen-checkbox">
+                        <label for="allergy-shellfish">Shellfish / 조개류</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-pine-nuts" value="pine_nuts" class="allergen-checkbox">
+                        <label for="allergy-pine-nuts">Pine Nuts / 잣</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-mussels" value="mussels" class="allergen-checkbox">
+                        <label for="allergy-mussels">Mussels / 홍합</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-abalone" value="abalone" class="allergen-checkbox">
+                        <label for="allergy-abalone">Abalone / 전복</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-oysters" value="oysters" class="allergen-checkbox">
+                        <label for="allergy-oysters">Oysters / 굴</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    ✨ Complete Registration / 회원가입 완료
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('alertBox');
+
+            // Email validation
+            const email = document.getElementById('email').value;
+            console.log('Validating email:', email); // Debug
+
+            // First check: Only allow English letters, numbers, and email-related symbols
+            const validCharsRegex = /^[a-zA-Z0-9@._-]+$/;
+            if (!validCharsRegex.test(email)) {
+                showAlert('❌ Email must contain only English letters, numbers, and symbols (@._-) / 이메일은 영문자, 숫자, 기호(@._-)만 사용 가능합니다', 'error');
+                return;
+            }
+
+            // Second check: @ symbol
+            if (!email.includes('@')) {
+                showAlert('❌ Email must include @ symbol (e.g., user@example.com) / 이메일에 @ 기호가 필요합니다 (예: user@example.com)', 'error');
+                return;
+            }
+
+            // Third check: dot (.) after @
+            const domainPart = email.split('@')[1];
+            if (!domainPart || !domainPart.includes('.')) {
+                showAlert('❌ Email must include a dot (.) after @ (e.g., user@example.com) / 이메일에 @ 뒤에 점(.)이 필요합니다 (예: user@example.com)', 'error');
+                return;
+            }
+
+            // Fourth check: full regex validation
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('❌ Invalid email format (e.g., user@example.com) / 이메일 형식이 올바르지 않습니다 (예: user@example.com)', 'error');
+                return;
+            }
+
+            console.log('Email validation passed'); // Debug
+
+            // Password validation
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+            // Check minimum length
+            if (password.length < 8) {
+                showAlert('❌ Password must be at least 8 characters / 비밀번호는 최소 8자 이상이어야 합니다', 'error');
+                return;
+            }
+
+            // Check for English letters (a-z, A-Z)
+            if (!/[a-zA-Z]/.test(password)) {
+                showAlert('❌ Password must contain at least one English letter / 비밀번호에 영문자가 최소 1개 이상 포함되어야 합니다', 'error');
+                return;
+            }
+
+            // Check for numbers (0-9)
+            if (!/[0-9]/.test(password)) {
+                showAlert('❌ Password must contain at least one number / 비밀번호에 숫자가 최소 1개 이상 포함되어야 합니다', 'error');
+                return;
+            }
+
+            // Check for special characters
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                showAlert('❌ Password must contain at least one special character (!@#$%^&* etc.) / 비밀번호에 특수문자가 최소 1개 이상 포함되어야 합니다 (!@#$%^&* 등)', 'error');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showAlert('❌ Passwords do not match / 비밀번호가 일치하지 않습니다', 'error');
+                return;
+            }
+
+            // Get selected allergies
+            const allergies = Array.from(document.querySelectorAll('.allergen-checkbox:checked'))
+                .map(cb => cb.value);
+
+            const data = {
+                email: document.getElementById('email').value,
+                password: password,
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                height_cm: parseFloat(document.getElementById('height').value),
+                weight_kg: parseFloat(document.getElementById('weight').value),
+                target_weight_kg: parseFloat(document.getElementById('targetWeight').value),
+                activity_level: document.getElementById('activity').value,
+                health_goal: document.getElementById('goal').value,
+                allergies: allergies
+            };
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Registering... / 등록 중...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ Registration successful! Redirecting to login... / 회원가입이 완료되었습니다! 로그인 페이지로 이동합니다...', 'success');
+
+                    // Store user info
+                    localStorage.setItem('fitmealor_user', JSON.stringify(result.user));
+                    localStorage.setItem('fitmealor_token', result.token);
+
+                    setTimeout(() => {
+                        window.location.href = 'demo_ui.html';
+                    }, 2000);
+                } else {
+                    showAlert('❌ ' + (result.detail || result.message || 'Registration failed / 회원가입에 실패했습니다'), 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '✨ 회원가입 완료 / Complete Registration';
+                }
+            } catch (error) {
+                showAlert('❌ Server connection failed. Please check if the server is running. / 서버 연결에 실패했습니다. 서버가 실행 중인지 확인해주세요.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✨ 회원가입 완료 / Complete Registration';
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-' + type;
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Real-time email validation on blur (when user leaves the field)
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            const errorElement = document.getElementById('emailError');
+
+            if (!email) {
+                errorElement.style.display = 'none';
+                return;
+            }
+
+            // First check: Only allow English letters, numbers, and email-related symbols
+            const validCharsRegex = /^[a-zA-Z0-9@._-]+$/;
+            if (!validCharsRegex.test(email)) {
+                errorElement.textContent = 'Email must contain only English letters, numbers, and symbols (@._-) / 이메일은 영문자, 숫자, 기호(@._-)만 사용 가능합니다';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // Second check: @ symbol
+            if (!email.includes('@')) {
+                errorElement.textContent = 'Email must include @ symbol (e.g., user@example.com) / 이메일에 @ 기호가 필요합니다 (예: user@example.com)';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // Third check: dot (.) after @
+            const domainPart = email.split('@')[1];
+            if (!domainPart || !domainPart.includes('.')) {
+                errorElement.textContent = 'Email must include a dot (.) after @ (e.g., user@example.com) / 이메일에 @ 뒤에 점(.)이 필요합니다 (예: user@example.com)';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // Fourth check: full regex validation
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+            if (!emailRegex.test(email)) {
+                errorElement.textContent = 'Invalid email format (e.g., user@example.com) / 이메일 형식이 올바르지 않습니다 (예: user@example.com)';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // All checks passed
+            errorElement.style.display = 'none';
+        });
+
+        // Clear error when user starts typing again
+        document.getElementById('email').addEventListener('input', function() {
+            const errorElement = document.getElementById('emailError');
+            errorElement.style.display = 'none';
+        });
+
+        // Real-time password validation on blur
+        document.getElementById('password').addEventListener('blur', function() {
+            const password = this.value;
+            const errorElement = document.getElementById('passwordError');
+
+            if (!password) {
+                errorElement.style.display = 'none';
+                return;
+            }
+
+            // Check minimum length
+            if (password.length < 8) {
+                errorElement.textContent = 'Password must be at least 8 characters / 비밀번호는 최소 8자 이상이어야 합니다';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // Check for English letters (a-z, A-Z)
+            if (!/[a-zA-Z]/.test(password)) {
+                errorElement.textContent = 'Password must contain at least one English letter / 비밀번호에 영문자가 최소 1개 이상 포함되어야 합니다';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // Check for numbers (0-9)
+            if (!/[0-9]/.test(password)) {
+                errorElement.textContent = 'Password must contain at least one number / 비밀번호에 숫자가 최소 1개 이상 포함되어야 합니다';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // Check for special characters
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                errorElement.textContent = 'Password must contain at least one special character (!@#$%^&* etc.) / 비밀번호에 특수문자가 최소 1개 이상 포함되어야 합니다';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // All checks passed
+            errorElement.style.display = 'none';
+        });
+
+        // Clear password error when user starts typing again
+        document.getElementById('password').addEventListener('input', function() {
+            const errorElement = document.getElementById('passwordError');
+            errorElement.style.display = 'none';
+        });
+
+        // Real-time password confirmation validation
+        document.getElementById('passwordConfirm').addEventListener('blur', function() {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = this.value;
+            const errorElement = document.getElementById('passwordConfirmError');
+
+            if (!passwordConfirm) {
+                errorElement.style.display = 'none';
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                errorElement.textContent = 'Passwords do not match / 비밀번호가 일치하지 않습니다';
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+        });
+
+        // Clear password confirmation error when user starts typing
+        document.getElementById('passwordConfirm').addEventListener('input', function() {
+            const errorElement = document.getElementById('passwordConfirmError');
+            errorElement.style.display = 'none';
+        });
+
+        // Enter key navigation: Age -> Gender
+        document.getElementById('age').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('gender').focus();
+            }
+        });
+
+        // Enter key navigation: Gender -> Height
+        document.getElementById('gender').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('height').focus();
+            }
+        });
+
+        // Open dropdown when arrow keys are pressed on gender select
+        document.getElementById('gender').addEventListener('keydown', function(e) {
+            const select = this;
+
+            if (e.key === 'ArrowUp' || e.key === 'Up' || e.key === 'ArrowDown' || e.key === 'Down') {
+                // Don't prevent default - let browser handle opening dropdown
+                // This will show the full options list like other select elements
+                select.click(); // Open the dropdown
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitmealor - 내 프로필 / My Profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .nav-bar {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        .nav-bar a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: white;
+            margin-right: 20px;
+        }
+        .profile-info h2 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .profile-info p {
+            color: #666;
+        }
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        input:disabled, select:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .allergen-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .checkbox-item:hover {
+            background: #e9ecef;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .checkbox-item label {
+            margin: 0;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .allergen-checkboxes {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+            .nav-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+            }
+            .nav-links a {
+                text-align: center;
+                width: 100%;
+            }
+            .user-info {
+                flex-direction: column;
+                gap: 5px;
+                width: 100%;
+            }
+            .user-info a {
+                width: 100%;
+                text-align: center;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn-secondary {
+                margin-left: 0;
+            }
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .profile-avatar {
+                margin: 0 auto 15px;
+            }
+            .checkbox-item {
+                padding: 8px;
+            }
+            .checkbox-item label {
+                font-size: 12px;
+            }
+            input, select {
+                font-size: 16px;
+                padding: 14px;
+            }
+            .btn {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+            .section-title {
+                font-size: 1.1em;
+            }
+            .stat-card {
+                padding: 15px;
+            }
+            .stat-value {
+                font-size: 1.5em;
+            }
+            label {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .card {
+                padding: 15px;
+            }
+            .allergen-checkboxes {
+                grid-template-columns: 1fr;
+            }
+            .profile-info h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <div class="nav-links">
+                <a href="demo_ui.html">🏠 홈 / Home</a>
+                <a href="profile.html">👤 프로필 / Profile</a>
+            </div>
+            <a href="#" id="logoutBtn">🚪 Logout / 로그아웃</a>
+        </div>
+
+        <div class="header">
+            <h1>👤 내 프로필 / My Profile</h1>
+        </div>
+
+        <div class="card">
+            <div id="alertBox" class="alert"></div>
+
+            <div class="profile-header">
+                <div class="profile-avatar" id="avatarIcon">👤</div>
+                <div class="profile-info">
+                    <h2 id="userName">Loading...</h2>
+                    <p id="userEmail">email@example.com</p>
+                </div>
+            </div>
+
+            <!-- Current Stats -->
+            <div class="section-title">📊 현재 상태 / Current Stats</div>
+            <div class="grid" style="margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="currentBMI">-</div>
+                    <div class="stat-label">BMI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="currentTDEE">-</div>
+                    <div class="stat-label">TDEE (kcal/day)</div>
+                </div>
+            </div>
+
+            <form id="profileForm">
+                <!-- Health Profile -->
+                <div class="section-title">💪 건강 프로필 / Health Profile</div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Age / 나이</label>
+                        <input type="number" id="age" min="1" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender / 성별</label>
+                        <select id="gender">
+                            <option value="unspecified">Prefer not to say / 미선택</option>
+                            <option value="male">Male / 남성</option>
+                            <option value="female">Female / 여성</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Height / 키 (cm)</label>
+                        <input type="number" id="height" min="100" max="250" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Weight / 체중 (kg)</label>
+                        <input type="number" id="weight" min="30" max="300" step="0.1" required>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Target Weight / 목표 체중 (kg)</label>
+                        <input type="number" id="targetWeight" min="30" max="300" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Level / 활동량</label>
+                        <select id="activity" required>
+                            <option value="sedentary">Sedentary / 비활동적</option>
+                            <option value="light">Light / 가벼운 활동</option>
+                            <option value="moderate">Moderate / 보통</option>
+                            <option value="active">Active / 활동적</option>
+                            <option value="very_active">Very Active / 매우 활동적</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Health Goal / 건강 목표</label>
+                    <select id="goal" required>
+                        <option value="lose_weight">Lose Weight / 체중 감량</option>
+                        <option value="maintain">Maintain / 유지</option>
+                        <option value="gain_muscle">Gain Muscle / 근육 증가</option>
+                        <option value="bulk_up">Bulk Up / 벌크업</option>
+                    </select>
+                </div>
+
+                <!-- Allergy Information -->
+                <div class="section-title">🚫 알레르기 정보 / Allergy Information</div>
+
+                <div class="allergen-checkboxes">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-eggs" value="eggs" class="allergen-checkbox">
+                        <label for="allergy-eggs">Eggs / 난류</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-milk" value="milk" class="allergen-checkbox">
+                        <label for="allergy-milk">Milk / 우유</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-buckwheat" value="buckwheat" class="allergen-checkbox">
+                        <label for="allergy-buckwheat">Buckwheat / 메밀</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-peanuts" value="peanuts" class="allergen-checkbox">
+                        <label for="allergy-peanuts">Peanuts / 땅콩</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-soybeans" value="soybeans" class="allergen-checkbox">
+                        <label for="allergy-soybeans">Soybeans / 대두</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-wheat" value="wheat" class="allergen-checkbox">
+                        <label for="allergy-wheat">Wheat / 밀</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-mackerel" value="mackerel" class="allergen-checkbox">
+                        <label for="allergy-mackerel">Mackerel / 고등어</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-crab" value="crab" class="allergen-checkbox">
+                        <label for="allergy-crab">Crab / 게</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-shrimp" value="shrimp" class="allergen-checkbox">
+                        <label for="allergy-shrimp">Shrimp / 새우</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-pork" value="pork" class="allergen-checkbox">
+                        <label for="allergy-pork">Pork / 돼지고기</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-peach" value="peach" class="allergen-checkbox">
+                        <label for="allergy-peach">Peach / 복숭아</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-tomato" value="tomato" class="allergen-checkbox">
+                        <label for="allergy-tomato">Tomato / 토마토</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-sulfites" value="sulfites" class="allergen-checkbox">
+                        <label for="allergy-sulfites">Sulfites / 아황산류</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-walnuts" value="walnuts" class="allergen-checkbox">
+                        <label for="allergy-walnuts">Walnuts / 호두</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-chicken" value="chicken" class="allergen-checkbox">
+                        <label for="allergy-chicken">Chicken / 닭고기</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-beef" value="beef" class="allergen-checkbox">
+                        <label for="allergy-beef">Beef / 쇠고기</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-squid" value="squid" class="allergen-checkbox">
+                        <label for="allergy-squid">Squid / 오징어</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-shellfish" value="shellfish" class="allergen-checkbox">
+                        <label for="allergy-shellfish">Shellfish / 조개류</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-pine-nuts" value="pine_nuts" class="allergen-checkbox">
+                        <label for="allergy-pine-nuts">Pine Nuts / 잣</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-mussels" value="mussels" class="allergen-checkbox">
+                        <label for="allergy-mussels">Mussels / 홍합</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-abalone" value="abalone" class="allergen-checkbox">
+                        <label for="allergy-abalone">Abalone / 전복</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="allergy-oysters" value="oysters" class="allergen-checkbox">
+                        <label for="allergy-oysters">Oysters / 굴</label>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn" id="submitBtn">
+                        💾 변경사항 저장 / Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">
+                        ↩️ 취소 / Cancel
+                    </button>
+                </div>
+            </form>
+
+            <!-- Delete Account -->
+            <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+                <button type="button" class="btn btn-danger" id="deleteAccountBtn">
+                    🗑️ Delete Account / 회원 탈퇴
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalData = null;
+
+        // Check if logged in
+        const token = localStorage.getItem('fitmealor_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Load user profile
+        async function loadProfile() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    displayProfile(user);
+                    originalData = user;
+                } else {
+                    showAlert('프로필을 불러올 수 없습니다 / Failed to load profile', 'error');
+                    localStorage.removeItem('fitmealor_token');
+                    localStorage.removeItem('fitmealor_user');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                }
+            } catch (error) {
+                showAlert('서버 연결 실패 / Server connection failed', 'error');
+            }
+        }
+
+        function displayProfile(user) {
+            // Header
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('avatarIcon').textContent = user.name.charAt(0).toUpperCase();
+
+            // Stats
+            const bmi = (user.weight_kg / Math.pow(user.height_cm / 100, 2)).toFixed(1);
+            document.getElementById('currentBMI').textContent = bmi;
+
+            let bmr;
+            if (user.gender === 'male') {
+                bmr = 10 * user.weight_kg + 6.25 * user.height_cm - 5 * user.age + 5;
+            } else if (user.gender === 'female') {
+                bmr = 10 * user.weight_kg + 6.25 * user.height_cm - 5 * user.age - 161;
+            } else {
+                bmr = 10 * user.weight_kg + 6.25 * user.height_cm - 5 * user.age - 78; // Average
+            }
+            const tdee = Math.round(bmr * 1.55);
+            document.getElementById('currentTDEE').textContent = tdee;
+
+            // Form fields
+            document.getElementById('age').value = user.age;
+            document.getElementById('gender').value = user.gender;
+            document.getElementById('height').value = user.height_cm;
+            document.getElementById('weight').value = user.weight_kg;
+            document.getElementById('targetWeight').value = user.target_weight_kg;
+            document.getElementById('activity').value = user.activity_level;
+            document.getElementById('goal').value = user.health_goal;
+
+            // Allergies
+            document.querySelectorAll('.allergen-checkbox').forEach(cb => {
+                cb.checked = user.allergies.includes(cb.value);
+            });
+        }
+
+        // Update profile
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ 저장 중... / Saving...';
+
+            const allergies = Array.from(document.querySelectorAll('.allergen-checkbox:checked'))
+                .map(cb => cb.value);
+
+            const data = {
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                height_cm: parseFloat(document.getElementById('height').value),
+                weight_kg: parseFloat(document.getElementById('weight').value),
+                target_weight_kg: parseFloat(document.getElementById('targetWeight').value),
+                activity_level: document.getElementById('activity').value,
+                health_goal: document.getElementById('goal').value,
+                allergies: allergies
+            };
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ 프로필이 업데이트되었습니다! / Profile updated successfully!', 'success');
+
+                    // Update stored user data
+                    localStorage.setItem('fitmealor_user', JSON.stringify(result));
+
+                    // Reload profile
+                    setTimeout(() => {
+                        loadProfile();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 1500);
+                } else {
+                    showAlert('❌ ' + (result.detail || '업데이트 실패 / Update failed'), 'error');
+                }
+            } catch (error) {
+                showAlert('❌ 서버 연결 실패 / Server connection failed', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '💾 변경사항 저장 / Save Changes';
+            }
+        });
+
+        // Cancel button
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            if (originalData) {
+                displayProfile(originalData);
+                showAlert('ℹ️ 변경사항이 취소되었습니다 / Changes cancelled', 'success');
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('로그아웃 하시겠습니까? / Do you want to logout?')) {
+                localStorage.removeItem('fitmealor_token');
+                localStorage.removeItem('fitmealor_user');
+                // Keep auto-login credentials for next login
+                // If you want to clear auto-login on logout, uncomment these lines:
+                // localStorage.removeItem('fitmealor_auto_email');
+                // localStorage.removeItem('fitmealor_auto_password');
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Delete Account
+        document.getElementById('deleteAccountBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const confirmMessage = '정말로 회원 탈퇴를 하시겠습니까?\n모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.\n\nAre you sure you want to delete your account?\nAll your data will be permanently deleted and cannot be recovered.';
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            const doubleConfirm = '마지막 확인입니다. 정말로 탈퇴하시겠습니까?\n\nFinal confirmation. Do you really want to delete your account?';
+
+            if (!confirm(doubleConfirm)) {
+                return;
+            }
+
+            const deleteBtn = document.getElementById('deleteAccountBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = '⏳ 처리 중... / Processing...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/account', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ ' + result.message, 'success');
+
+                    // Clear all local storage
+                    localStorage.removeItem('fitmealor_token');
+                    localStorage.removeItem('fitmealor_user');
+                    localStorage.removeItem('fitmealor_auto_email');
+                    localStorage.removeItem('fitmealor_auto_password');
+
+                    // Redirect to login page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showAlert('❌ ' + (result.detail || result.message || '회원 탈퇴에 실패했습니다 / Failed to delete account'), 'error');
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = '🗑️ Delete Account / 회원 탈퇴';
+                }
+            } catch (error) {
+                showAlert('❌ 서버 연결 실패 / Server connection failed', 'error');
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = '🗑️ Delete Account / 회원 탈퇴';
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-' + type;
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load profile on page load
+        loadProfile();
+    </script>
+</body>
+</html>
