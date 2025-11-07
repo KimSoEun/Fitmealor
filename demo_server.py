@@ -75,8 +75,115 @@ def init_database():
         )
     """)
 
+    # Create meals table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS meals (
+            meal_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            name_en TEXT,
+            brand TEXT,
+            category TEXT,
+            ingredients TEXT,
+            allergens TEXT,
+            calories INTEGER,
+            protein_g REAL,
+            carbs_g REAL,
+            fat_g REAL,
+            sodium_mg INTEGER,
+            serving_size TEXT,
+            origin TEXT,
+            explanation_en TEXT,
+            explanation_ko TEXT,
+            score INTEGER DEFAULT 80
+        )
+    """)
+
     conn.commit()
     conn.close()
+
+def get_all_meals_from_db():
+    """Retrieve all meals from database"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM meals")
+    rows = cursor.fetchall()
+
+    meals = []
+    for row in rows:
+        meal = {
+            "meal_id": row[0],
+            "name": row[1],
+            "name_en": row[2],
+            "brand": row[3],
+            "category": row[4],
+            "ingredients": json.loads(row[5]) if row[5] else [],
+            "allergens": json.loads(row[6]) if row[6] else [],
+            "calories": row[7],
+            "protein_g": row[8],
+            "carbs_g": row[9],
+            "fat_g": row[10],
+            "sodium_mg": row[11],
+            "serving_size": row[12],
+            "origin": row[13],
+            "explanation_en": row[14],
+            "explanation_ko": row[15],
+            "score": row[16]
+        }
+        meals.append(meal)
+
+    conn.close()
+    return meals
+
+def import_meals_to_db(meals_data):
+    """Import meal data into database"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Check if meals already exist
+    cursor.execute("SELECT COUNT(*) FROM meals")
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        print(f"📊 Database already contains {count} meals. Skipping import.")
+        conn.close()
+        return count
+
+    # Import meals
+    imported = 0
+    for meal in meals_data:
+        try:
+            cursor.execute("""
+                INSERT INTO meals VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+            """, (
+                meal["meal_id"],
+                meal["name"],
+                meal.get("name_en"),
+                meal.get("brand"),
+                meal.get("category"),
+                json.dumps(meal.get("ingredients", [])),
+                json.dumps(meal.get("allergens", [])),
+                meal.get("calories"),
+                meal.get("protein_g"),
+                meal.get("carbs_g"),
+                meal.get("fat_g"),
+                meal.get("sodium_mg"),
+                meal.get("serving_size"),
+                meal.get("origin"),
+                meal.get("explanation_en"),
+                meal.get("explanation_ko"),
+                meal.get("score", 80)
+            ))
+            imported += 1
+        except Exception as e:
+            print(f"❌ Error importing meal {meal.get('meal_id', 'unknown')}: {e}")
+
+    conn.commit()
+    conn.close()
+    print(f"✅ Imported {imported} meals into database")
+    return imported
 
 # Initialize database on startup
 init_database()
@@ -228,6 +335,11 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
     base_score = meal.get("score", 80)
     bonus = 0
 
+    # Helper function to safely get numeric values (handle None)
+    def safe_get(key, default=0):
+        value = meal.get(key, default)
+        return value if value is not None else default
+
     # Apply ChatGPT-extracted food preferences FIRST (highest priority after health)
     if preferences:
         meal_name_lower = meal.get("name", "").lower()
@@ -244,28 +356,28 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
                 bonus -= 100  # MASSIVE penalty for disliked foods! Should push it to bottom
                 break
 
-        # Check LIKED foods - strong boost!
+        # Check LIKED foods - MASSIVE boost!
         liked_foods = preferences.get("liked_foods", [])
         for liked_food in liked_foods:
             liked_lower = liked_food.lower()
             if liked_lower in meal_name_lower or liked_lower in ingredients_str:
-                print(f"[LIKE MATCH] Meal '{meal.get('name')}' contains liked food '{liked_food}' - Applying +40 bonus")
-                bonus += 40  # VERY strong boost for liked foods!
+                print(f"[LIKE MATCH] Meal '{meal.get('name')}' contains liked food '{liked_food}' - Applying +100 bonus")
+                bonus += 100  # MASSIVE boost for liked foods!
                 break
 
     if not body_condition or not body_condition.strip():
         # No health concerns, apply general health goal adjustments
         if health_goal == "lose_weight":
-            if meal.get("calories", 999) < 350:
+            if safe_get("calories", 999) < 350:
                 bonus += 5
-            if meal.get("protein_g", 0) > 15:
+            if safe_get("protein_g", 0) > 15:
                 bonus += 5
         elif health_goal == "gain_muscle" or health_goal == "bulk_up":
-            if meal.get("protein_g", 0) > 20:
+            if safe_get("protein_g", 0) > 20:
                 bonus += 10
-            if meal.get("calories", 0) > 400:
+            if safe_get("calories", 0) > 400:
                 bonus += 5
-        return min(max(base_score + bonus, 20), 100)  # Allow lower scores for disliked foods
+        return max(base_score + bonus, 0)  # Remove upper cap - let preference bonuses work!
 
     condition_lower = body_condition.lower()
     meal_name_lower = meal.get("name", "").lower()
@@ -276,48 +388,48 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
     # Low protein request OR Kidney issues (proteinuria/단백뇨) - AVOID high protein, AVOID high sodium
     if any(word in condition_lower for word in ["단백뇨", "proteinuria", "신장", "kidney", "콩팥", "저단백", "low protein", "낮은 단백질"]):
         # Penalize high protein heavily
-        if meal.get("protein_g", 0) > 20:
+        if safe_get("protein_g", 0) > 20:
             bonus -= 30  # Strong penalty
-        elif meal.get("protein_g", 0) > 15:
+        elif safe_get("protein_g", 0) > 15:
             bonus -= 15
         # Penalize high sodium
-        if meal.get("sodium_mg", 0) > 600:
+        if safe_get("sodium_mg", 0) > 600:
             bonus -= 20
-        elif meal.get("sodium_mg", 0) > 400:
+        elif safe_get("sodium_mg", 0) > 400:
             bonus -= 10
         # Prefer low protein, low sodium
-        if meal.get("protein_g", 0) < 12 and meal.get("sodium_mg", 0) < 400:
+        if safe_get("protein_g", 0) < 12 and safe_get("sodium_mg", 0) < 400:
             bonus += 25
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["채소", "vegetable", "샐러드", "salad", "과일", "fruit"]):
             bonus += 15
         # Ignore fitness goals for kidney health!
-        return min(max(base_score + bonus, 30), 100)
+        return max(base_score + bonus, 0)  # Remove upper cap - let preference bonuses work!
 
     # Low carb request OR Diabetes/High blood sugar - AVOID high carbs
     if any(word in condition_lower for word in ["당뇨", "diabetes", "혈당", "blood sugar", "저탄수", "low carb", "낮은 탄수화물"]):
-        if meal.get("carbs_g", 0) > 60:
+        if safe_get("carbs_g", 0) > 60:
             bonus -= 25
-        elif meal.get("carbs_g", 0) < 30:
+        elif safe_get("carbs_g", 0) < 30:
             bonus += 15
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["현미", "brown rice", "통곡물", "whole grain", "퀴노아", "quinoa"]):
             bonus += 10
-        return min(max(base_score + bonus, 30), 100)
+        return max(base_score + bonus, 0)  # Remove upper cap - let preference bonuses work!
 
     # Low sodium request OR High blood pressure - AVOID sodium
     if any(word in condition_lower for word in ["고혈압", "hypertension", "blood pressure", "저염", "low sodium", "낮은 나트륨", "low salt"]):
-        if meal.get("sodium_mg", 0) > 600:
+        if safe_get("sodium_mg", 0) > 600:
             bonus -= 30
-        elif meal.get("sodium_mg", 0) < 300:
+        elif safe_get("sodium_mg", 0) < 300:
             bonus += 20
-        return min(max(base_score + bonus, 30), 100)
+        return max(base_score + bonus, 0)  # Remove upper cap - let preference bonuses work!
 
     # NON-CRITICAL CONDITIONS - Can consider fitness goals
 
     # High protein request - prefer high protein meals
     if any(word in condition_lower for word in ["고단백", "high protein", "높은 단백질", "단백질 많이"]):
-        if meal.get("protein_g", 0) > 25:
+        if safe_get("protein_g", 0) > 25:
             bonus += 20
-        elif meal.get("protein_g", 0) > 20:
+        elif safe_get("protein_g", 0) > 20:
             bonus += 15
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["닭", "chicken", "연어", "salmon", "참치", "tuna", "계란", "egg"]):
             bonus += 10
@@ -325,7 +437,7 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
 
     # Fatigue/Tiredness - prefer moderate protein, iron-rich foods
     elif any(word in condition_lower for word in ["피곤", "tired", "fatigue", "exhausted", "지침"]):
-        if meal.get("protein_g", 0) > 15 and meal.get("protein_g", 0) < 25:
+        if safe_get("protein_g", 0) > 15 and safe_get("protein_g", 0) < 25:
             bonus += 15
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["연어", "salmon", "닭", "chicken"]):
             bonus += 10
@@ -334,18 +446,18 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
 
     # Digestion issues - prefer low sodium, fiber-rich, easy to digest
     elif any(word in condition_lower for word in ["소화", "digestion", "indigestion", "stomach", "배", "속"]):
-        if meal.get("sodium_mg", 999) < 500:
+        if safe_get("sodium_mg", 999) < 500:
             bonus += 15
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["퀴노아", "quinoa", "렌틸", "lentil", "채소", "vegetable", "샐러드", "salad"]):
             bonus += 10
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["요거트", "yogurt", "프로바이오틱", "probiotic"]):
             bonus += 10
-        if meal.get("fat_g", 0) > 15:
+        if safe_get("fat_g", 0) > 15:
             bonus -= 10
 
     # Muscle pain - prefer moderate protein, anti-inflammatory
     elif any(word in condition_lower for word in ["근육", "muscle", "pain", "sore", "아프", "통증"]):
-        if meal.get("protein_g", 0) > 18:
+        if safe_get("protein_g", 0) > 18:
             bonus += 15
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["연어", "salmon", "참치", "tuna", "고등어", "mackerel"]):
             bonus += 10
@@ -354,7 +466,7 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
 
     # Stress - prefer complex carbs, calming nutrients
     elif any(word in condition_lower for word in ["스트레스", "stress", "압박", "불안", "anxiety"]):
-        if 40 < meal.get("carbs_g", 0) < 70:
+        if 40 < safe_get("carbs_g", 0) < 70:
             bonus += 10
         if any(ing in meal_name_lower or ing in str(ingredients) for ing in ["퀴노아", "quinoa", "현미", "brown rice", "통곡물", "whole grain"]):
             bonus += 10
@@ -363,10 +475,10 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
 
     # For non-critical conditions, apply mild fitness goal adjustments
     if health_goal == "lose_weight":
-        if meal.get("calories", 999) < 350:
+        if safe_get("calories", 999) < 350:
             bonus += 3
     elif health_goal == "gain_muscle" or health_goal == "bulk_up":
-        if meal.get("protein_g", 0) > 20:
+        if safe_get("protein_g", 0) > 20:
             bonus += 5
 
     # SMART INGREDIENT MATCHING: Check if any word from user's request appears in meal name or ingredients
@@ -389,7 +501,7 @@ def adjust_meal_score_for_condition(meal: dict, body_condition: str, health_goal
         if any(word in meal_name_lower or word in str(ingredients) for word in ["매운", "spicy", "고추", "불닭"]):
             bonus += 20
 
-    return min(max(base_score + bonus, 20), 100)  # Allow lower scores for disliked foods
+    return max(base_score + bonus, 0)  # Remove upper cap - let preference bonuses work!
 
 def get_user_from_token(authorization: Optional[str] = Header(None)) -> dict:
     if not authorization or not authorization.startswith('Bearer '):
@@ -914,21 +1026,92 @@ Rules:
 
 @app.post("/api/v1/recommendations/recommend")
 async def recommend_meals(request: RecommendationRequest):
-    # Calculate TDEE
-    if request.gender.lower() == 'male':
-        bmr = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age + 5
-    elif request.gender.lower() == 'female':
-        bmr = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age - 161
-    else:
-        # For unspecified gender, use average of male and female formulas
-        bmr_male = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age + 5
-        bmr_female = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age - 161
-        bmr = (bmr_male + bmr_female) / 2
+    # Import TDEE-based recommendation system
+    import sys
+    sys.path.insert(0, '/Users/goorm/Fitmealor/backend')
+    from tdee_recommendation import recommend_meals_by_tdee
 
-    tdee = int(bmr * 1.55)  # moderate activity
+    # Get TDEE-based recommendations from database
+    try:
+        result = recommend_meals_by_tdee(
+            gender=request.gender,
+            age=request.age,
+            weight_kg=request.weight_kg,
+            height_cm=request.height_cm,
+            activity_level=request.activity_level,
+            health_goal=request.health_goal,
+            num_recommendations=50  # Get more to filter by allergies
+        )
+
+        tdee_info = result['tdee_info']
+        db_recommendations = result['recommendations']
+
+    except Exception as e:
+        print(f"Error getting TDEE recommendations: {e}")
+        # Fallback to simple calculation
+        if request.gender.lower() == 'male':
+            bmr = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age + 5
+        elif request.gender.lower() == 'female':
+            bmr = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age - 161
+        else:
+            bmr_male = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age + 5
+            bmr_female = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age - 161
+            bmr = (bmr_male + bmr_female) / 2
+
+        tdee_info = {'bmr': int(bmr), 'tdee': int(bmr * 1.55), 'adjusted_tdee': int(bmr * 1.55)}
+        db_recommendations = []
+
+    # Use database recommendations (which are already TDEE-scored)
+    all_meals = db_recommendations if db_recommendations else []
+    tdee = tdee_info.get('adjusted_tdee', tdee_info.get('tdee', 2000))
+
+    print(f"\n{'='*90}")
+    print(f"🎯 TDEE RECOMMENDATION REQUEST")
+    print(f"{'='*90}")
+    print(f"User: {request.user_id}")
+    print(f"Gender: {request.gender}, Age: {request.age}, Weight: {request.weight_kg}kg, Height: {request.height_cm}cm")
+    print(f"Activity Level: {request.activity_level}, Health Goal: {request.health_goal}")
+    print(f"BMR: {tdee_info.get('bmr', 0)} kcal")
+    print(f"TDEE: {tdee_info.get('tdee', 0)} kcal")
+    print(f"Adjusted TDEE: {tdee} kcal (for {request.health_goal})")
+    print(f"Total meals from database: {len(all_meals)}")
+    print(f"{'='*90}\n")
 
     # Normalize user allergies to lowercase for comparison
     user_allergies = [a.lower().strip() for a in request.allergies]
+
+    # If we have no allergy filtering needed, return top meals immediately
+    if not user_allergies:
+        print(f"No allergies specified, returning top {min(20, len(all_meals))} TDEE-matched meals\n")
+        recommendations = all_meals[:20]
+
+        # Add the score as tdee_score for compatibility
+        for meal in recommendations:
+            if 'tdee_score' not in meal:
+                meal['score'] = meal.get('score', 80)
+
+        recommendation_reason = generate_recommendation_reason(
+            request.body_condition,
+            request.health_goal,
+            request.weight_kg,
+            request.target_weight_kg,
+            tdee,
+            len(recommendations)
+        )
+
+        return {
+            "success": True,
+            "user_id": request.user_id,
+            "tdee": tdee,
+            "tdee_info": tdee_info,
+            "user_allergies": request.allergies,
+            "total_available": len(all_meals),
+            "filtered_out": 0,
+            "total_recommendations": len(recommendations),
+            "recommendations": recommendations,
+            "recommendation_reason": recommendation_reason,
+            "message": f"Showing {len(recommendations)} TDEE-optimized meals"
+        }
 
     # Comprehensive allergen mapping (ingredient -> possible allergens)
     allergen_mapping = {
@@ -946,8 +1129,9 @@ async def recommend_meals(request: RecommendationRequest):
         "pork": ["pork", "돼지고기"]
     }
 
-    # Complete meal database with real Korean food products
-    all_meals = [
+    # Apply allergy filtering to database meals
+    print(f"Filtering meals for allergies: {user_allergies}")
+    safe_meals_placeholder = [
         {
             "meal_id": "1",
             "name": "CJ 비비고 닭가슴살 스테이크 (오리지널)",
@@ -2772,14 +2956,77 @@ async def recommend_meals(request: RecommendationRequest):
 
         return False
 
-    # Filter out meals with allergens
+    # Get meals from database (import hardcoded data if database is empty)
+    all_meals_from_db = get_all_meals_from_db()
+
+    if not all_meals_from_db:
+        # If database is empty, import the hardcoded meals
+        # This will be done in a separate migration, for now just log a warning
+        print("⚠️ Warning: No meals found in database")
+        all_meals_from_db = []
+
+    # Categories to exclude (supplements, vitamins, non-food items)
+    excluded_categories = [
+        '당류',  # Supplements/vitamins
+        '특수영양식품',  # Special nutritional foods (baby formula, etc.)
+        '코코아가공품류 또는 초콜릿류',  # Cocoa/chocolate products (often protein bars)
+    ]
+
+    # Supplement/vitamin keywords to filter out (these are NOT real meals)
+    supplement_keywords = [
+        # 보충제/영양제
+        '콜라겐', '아르기닌', 'bcaa', '글루타민', '타우린', '비타', '프로틴', 'protein',
+        '영양제', '보충제', '정', '캡슐', '알약', 'collagen', 'arginine',
+        'vitamin', 'supplement', '마일리지', '파우더', 'powder',
+
+        # 가공 단백질/영양 성분
+        '가수분해', '분리대두', '농축', '추출물', '추출액', 'isolate', 'hydrolyzed',
+        '펩타이드', 'peptide', '아미노산', 'amino', '오메가', 'omega',
+
+        # 건강기능식품 관련
+        '프로바이오틱스', '유산균', '효소', 'enzyme', '크레아틴', 'creatine',
+        '글루코사민', '루테인', '엽산', 'folic', '코엔자임', 'coenzyme',
+
+        # 스포츠/운동 보충제
+        '게이너', 'gainer', '웨이', 'whey', '카제인', 'casein',
+        '부스터', 'booster', '워크아웃', 'workout', '프리', 'pre-',
+        '프로티', 'proti', '하이플로', 'highpro',  # 프로티넷, 하이플로 같은 단백질 제품
+
+        # 다이어트 보조제
+        '다이어트식', '저칼로리바', '쉐이크믹스', '체중조절',
+
+        # 의료/특수 용도
+        '환자식', '영양액', '영양음료', '환자용',
+
+        # 기능성 커피 (단백질 강화 커피 등)
+        '로우카본', 'lowcarb', '발란스 드립', 'balance drip', '셀렉스', 'celex',
+        '내일의 커피', '프로핏', 'profit'  # 단백질 강화 커피 브랜드
+    ]
+
+    # Filter out meals with allergens and non-food items
     safe_meals = []
     filtered_count = 0
+    category_filtered_count = 0
+    supplement_filtered_count = 0
 
-    for meal in all_meals:
+    for meal in all_meals_from_db:
+        # Skip allergen-containing meals
         if contains_allergen(meal["allergens"]):
             filtered_count += 1
             continue  # Skip this meal
+
+        # Skip supplements and non-food categories
+        category = meal.get("category", "")
+        if category in excluded_categories:
+            category_filtered_count += 1
+            continue  # Skip supplements/vitamins
+
+        # Skip supplements/vitamins based on product name keywords
+        meal_name = meal.get("name", "").lower()
+        is_supplement = any(keyword in meal_name for keyword in supplement_keywords)
+        if is_supplement:
+            supplement_filtered_count += 1
+            continue  # Skip supplements
 
         # Add is_safe flag
         meal["is_safe"] = True
@@ -2795,8 +3042,30 @@ async def recommend_meals(request: RecommendationRequest):
     # Sort by adjusted score
     safe_meals.sort(key=lambda x: x["score"], reverse=True)
 
-    # Take top recommendations (up to 10)
-    recommendations = safe_meals[:10]
+    # Remove duplicate meal names (keep the highest-scoring one for each name)
+    seen_names = set()
+    unique_meals = []
+    for meal in safe_meals:
+        meal_name = meal.get("name", "").lower().strip()
+        if meal_name not in seen_names:
+            seen_names.add(meal_name)
+            unique_meals.append(meal)
+
+    # DEBUG: Show top 20 final scores
+    print(f"\n{'='*90}")
+    print(f"🏆 TOP 20 UNIQUE MEALS AFTER SCORING (showing final scores)")
+    print(f"{'='*90}")
+    for i, meal in enumerate(unique_meals[:20], 1):
+        name = meal.get("name", "")[:50]
+        category = meal.get("category", "")[:30]
+        final_score = meal.get("score", 0)
+        original_score = meal.get("original_score", 0)
+        bonus = final_score - original_score
+        print(f"{i:2}. {name:50} | {category:30} | Base:{original_score:3} Final:{final_score:3} (Bonus:{bonus:+4})")
+    print(f"{'='*90}\n")
+
+    # Take top recommendations (up to 10) from unique meals
+    recommendations = unique_meals[:10]
 
     # Generate recommendation reason based on body condition and health goal
     recommendation_reason = generate_recommendation_reason(

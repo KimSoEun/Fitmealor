@@ -610,6 +610,7 @@
                     </div>
                 </div>
             </div>
+
             <p style="color: #666; text-align: center; margin-top: 15px;" data-lang-en="Tell us about your body condition today ⬇️" data-lang-ko="오늘의 몸 상태를 아래에 입력해주세요 ⬇️"></p>
         </div>
 
@@ -1257,6 +1258,29 @@
             const tdee = Math.round(bmr * 1.55);
             document.getElementById('welcomeTDEE').textContent = tdee + ' kcal/day';
 
+            // Calculate and display BMI
+            const bmi = currentUser.weight_kg / Math.pow(currentUser.height_cm / 100, 2);
+            document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+
+            // Determine BMI category
+            const bmiCategories = [
+                { label: '저체중', labelEn: 'Underweight', range: [0, 18.5], color: '#60A5FA' },
+                { label: '정상', labelEn: 'Normal', range: [18.5, 23], color: '#34D399' },
+                { label: '과체중', labelEn: 'Overweight', range: [23, 25], color: '#FBBF24' },
+                { label: '경도비만', labelEn: 'Mild Obesity', range: [25, 30], color: '#FB923C' },
+                { label: '비만', labelEn: 'Obesity', range: [30, 35], color: '#F87171' },
+                { label: '고도비만', labelEn: 'Severe Obesity', range: [35, 50], color: '#DC2626' }
+            ];
+
+            let bmiCategory = bmiCategories[bmiCategories.length - 1];
+            for (const cat of bmiCategories) {
+                if (bmi >= cat.range[0] && bmi < cat.range[1]) {
+                    bmiCategory = cat;
+                    break;
+                }
+            }
+
+
             // Set allergen filters based on user profile
             document.querySelectorAll('.allergen-filter-checkbox').forEach(cb => {
                 cb.checked = currentUser.allergies.includes(cb.value);
@@ -1576,7 +1600,31 @@
                     console.log('Updated preferences:', userPreferences);
                 }
 
-                // Refresh recommendations if available
+                // Refresh recommendations
+                // For guest users, auto-populate currentFormData from form if not set
+                if (!currentFormData) {
+                    const age = document.getElementById('age');
+                    const gender = document.getElementById('gender');
+                    const height = document.getElementById('height');
+                    const weight = document.getElementById('weight');
+                    const targetWeight = document.getElementById('targetWeight');
+                    const activity = document.getElementById('activity');
+                    const goal = document.getElementById('goal');
+
+                    if (age && gender && height && weight && targetWeight && activity && goal) {
+                        currentFormData = {
+                            user_id: 'demo-user',
+                            age: parseInt(age.value),
+                            gender: gender.value,
+                            height_cm: parseFloat(height.value),
+                            weight_kg: parseFloat(weight.value),
+                            target_weight_kg: parseFloat(targetWeight.value),
+                            activity_level: activity.value,
+                            health_goal: goal.value
+                        };
+                    }
+                }
+
                 if (currentFormData) {
                     await fetchRecommendations();
                 }
