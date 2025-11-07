@@ -109,7 +109,7 @@ def get_meals_from_db(limit: int = 1000) -> List[Dict[str, Any]]:
 
     # 영양성분이 있는 식품만 가져오기 (칼로리 > 0)
     query = """
-        SELECT meal_id, name, category, calories, protein_g, carbs_g, fat_g, sodium_mg, score
+        SELECT meal_id, name, category, calories, protein_g, carbs_g, fat_g, sodium_mg, score, brand
         FROM meals
         WHERE calories > 0 AND protein_g >= 0 AND carbs_g >= 0 AND fat_g >= 0
         ORDER BY RANDOM()
@@ -131,7 +131,8 @@ def get_meals_from_db(limit: int = 1000) -> List[Dict[str, Any]]:
             'carbs_g': row[5] or 0.0,
             'fat_g': row[6] or 0.0,
             'sodium_mg': row[7] or 0,
-            'score': row[8] or 80
+            'score': row[8] or 80,
+            'brand': row[9] or ''
         })
 
     return meals
@@ -170,6 +171,12 @@ def score_meal_for_tdee(meal: Dict[str, Any], macro_targets: Dict[str, float]) -
         if keyword in category:
             base_score *= 0.5
             break
+
+    # 가공식품DB 데이터 (brand가 있는 경우) -50점 가중치 적용
+    brand = meal.get('brand', '')
+    if brand and len(brand) > 0:
+        base_score -= 50
+        base_score = max(0, base_score)  # 음수 방지
 
     return base_score
 
