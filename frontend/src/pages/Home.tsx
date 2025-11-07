@@ -252,18 +252,15 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <p className="text-sm text-gray-600 mb-1">기초대사량 (BMR)</p>
-              <p className="text-2xl font-bold text-gray-900">{tdeeInfo.bmr.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">kcal/일</p>
+              <p className="text-2xl font-bold text-gray-900">{tdeeInfo.bmr.toLocaleString()} <span className="text-xs text-gray-500">kcal/일</span></p>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <p className="text-sm text-gray-600 mb-1">일일 소모 칼로리 (TDEE)</p>
-              <p className="text-2xl font-bold text-blue-600">{tdeeInfo.tdee.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">kcal/일</p>
+              <p className="text-2xl font-bold text-blue-600">{tdeeInfo.tdee.toLocaleString()} <span className="text-xs text-gray-500">kcal/일</span></p>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <p className="text-sm text-gray-600 mb-1">목표 칼로리</p>
-              <p className="text-2xl font-bold text-indigo-600">{tdeeInfo.adjusted_tdee.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">kcal/일 ({userProfile.healthGoal})</p>
+              <p className="text-2xl font-bold text-indigo-600">{tdeeInfo.adjusted_tdee.toLocaleString()} <span className="text-xs text-gray-500">kcal/일 ({userProfile.healthGoal})</span></p>
             </div>
           </div>
 

@@ -57,10 +57,27 @@ export default function HealthProfile() {
   });
 
   const [tdeeInfo, setTdeeInfo] = useState<TDEEInfo | null>(null);
+  const [editedProfile, setEditedProfile] = useState(profile);
 
   const bmi = calculateBMI(profile.weight, profile.height);
   const bmiCategory = getBMICategory(bmi);
   const bmiPosition = getBMIPosition(bmi);
+
+  const handleCancel = () => {
+    setEditedProfile(profile);
+  };
+
+  const handleSave = () => {
+    setProfile(editedProfile);
+    alert('프로필이 저장되었습니다!');
+  };
+
+  const handleInputChange = (field: string, value: string | number) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   useEffect(() => {
     const fetchTDEE = async () => {
@@ -99,27 +116,108 @@ export default function HealthProfile() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">건강 프로필</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">건강 프로필</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={handleCancel}
+              className="bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition duration-200"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition duration-200"
+            >
+              저장
+            </button>
+          </div>
+        </div>
 
         {/* Profile Info Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">기본 정보</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm text-gray-500">이름</p>
-              <p className="text-lg font-medium">{profile.name}</p>
+              <label className="block text-sm text-gray-500 mb-2">이름</label>
+              <input
+                type="text"
+                value={editedProfile.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
             <div>
-              <p className="text-sm text-gray-500">나이</p>
-              <p className="text-lg font-medium">{profile.age}세</p>
+              <label className="block text-sm text-gray-500 mb-2">나이</label>
+              <input
+                type="number"
+                value={editedProfile.age}
+                onChange={(e) => handleInputChange('age', parseInt(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
             <div>
-              <p className="text-sm text-gray-500">성별</p>
-              <p className="text-lg font-medium">{profile.gender}</p>
+              <label className="block text-sm text-gray-500 mb-2">성별</label>
+              <select
+                value={editedProfile.gender}
+                onChange={(e) => handleInputChange('gender', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="남성">남성</option>
+                <option value="여성">여성</option>
+              </select>
             </div>
             <div>
-              <p className="text-sm text-gray-500">활동량</p>
-              <p className="text-lg font-medium">{profile.activityLevel}</p>
+              <label className="block text-sm text-gray-500 mb-2">키 (cm)</label>
+              <input
+                type="number"
+                value={editedProfile.height}
+                onChange={(e) => handleInputChange('height', parseInt(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">현재 체중 (kg)</label>
+              <input
+                type="number"
+                value={editedProfile.weight}
+                onChange={(e) => handleInputChange('weight', parseFloat(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">목표 체중 (kg)</label>
+              <input
+                type="number"
+                value={editedProfile.targetWeight}
+                onChange={(e) => handleInputChange('targetWeight', parseFloat(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">활동량</label>
+              <select
+                value={editedProfile.activityLevel}
+                onChange={(e) => handleInputChange('activityLevel', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="비활동적">비활동적</option>
+                <option value="가볍게 활동적">가볍게 활동적</option>
+                <option value="활동적">활동적</option>
+                <option value="매우 활동적">매우 활동적</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">건강 목표</label>
+              <select
+                value={editedProfile.healthGoal}
+                onChange={(e) => handleInputChange('healthGoal', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="체중감량">체중감량</option>
+                <option value="체중유지">체중유지</option>
+                <option value="근육증가">근육증가</option>
+              </select>
             </div>
           </div>
         </div>

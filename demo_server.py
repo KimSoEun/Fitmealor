@@ -1026,14 +1026,14 @@ Rules:
 
 @app.post("/api/v1/recommendations/recommend")
 async def recommend_meals(request: RecommendationRequest):
-    # Import TDEE-based recommendation system
+    # Import AI-based recommendation system
     import sys
     sys.path.insert(0, '/Users/goorm/Fitmealor/backend')
-    from tdee_recommendation import recommend_meals_by_tdee
+    from ai_recommendation import recommend_meals_with_ai
 
-    # Get TDEE-based recommendations from database
+    # Get AI-based recommendations from database
     try:
-        result = recommend_meals_by_tdee(
+        result = recommend_meals_with_ai(
             gender=request.gender,
             age=request.age,
             weight_kg=request.weight_kg,
@@ -1047,7 +1047,7 @@ async def recommend_meals(request: RecommendationRequest):
         db_recommendations = result['recommendations']
 
     except Exception as e:
-        print(f"Error getting TDEE recommendations: {e}")
+        print(f"Error getting AI recommendations: {e}")
         # Fallback to simple calculation
         if request.gender.lower() == 'male':
             bmr = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age + 5
@@ -1061,12 +1061,12 @@ async def recommend_meals(request: RecommendationRequest):
         tdee_info = {'bmr': int(bmr), 'tdee': int(bmr * 1.55), 'adjusted_tdee': int(bmr * 1.55)}
         db_recommendations = []
 
-    # Use database recommendations (which are already TDEE-scored)
+    # Use database recommendations (which are already AI-scored)
     all_meals = db_recommendations if db_recommendations else []
     tdee = tdee_info.get('adjusted_tdee', tdee_info.get('tdee', 2000))
 
     print(f"\n{'='*90}")
-    print(f"🎯 TDEE RECOMMENDATION REQUEST")
+    print(f"🤖 AI RECOMMENDATION REQUEST")
     print(f"{'='*90}")
     print(f"User: {request.user_id}")
     print(f"Gender: {request.gender}, Age: {request.age}, Weight: {request.weight_kg}kg, Height: {request.height_cm}cm")
@@ -1082,12 +1082,14 @@ async def recommend_meals(request: RecommendationRequest):
 
     # If we have no allergy filtering needed, return top meals immediately
     if not user_allergies:
-        print(f"No allergies specified, returning top {min(20, len(all_meals))} TDEE-matched meals\n")
+        print(f"No allergies specified, returning top {min(20, len(all_meals))} AI-scored meals\n")
         recommendations = all_meals[:20]
 
-        # Add the score as tdee_score for compatibility
+        # Add the score for compatibility - use ai_score if available
         for meal in recommendations:
-            if 'tdee_score' not in meal:
+            if 'ai_score' in meal:
+                meal['score'] = meal.get('ai_score', 80)
+            elif 'tdee_score' not in meal:
                 meal['score'] = meal.get('score', 80)
 
         recommendation_reason = generate_recommendation_reason(
@@ -1110,7 +1112,7 @@ async def recommend_meals(request: RecommendationRequest):
             "total_recommendations": len(recommendations),
             "recommendations": recommendations,
             "recommendation_reason": recommendation_reason,
-            "message": f"Showing {len(recommendations)} TDEE-optimized meals"
+            "message": f"Showing {len(recommendations)} AI-recommended meals"
         }
 
     # Comprehensive allergen mapping (ingredient -> possible allergens)
