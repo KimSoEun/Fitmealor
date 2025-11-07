@@ -19,7 +19,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -63,9 +63,47 @@ export default function Register() {
       return;
     }
 
-    // 회원가입 성공 시 로그인 페이지로 이동
-    alert('회원가입이 완료되었습니다!');
-    navigate('/login');
+    try {
+      // API 호출
+      const response = await fetch('http://localhost:8000/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          age: parseInt(formData.age),
+          gender: formData.gender,
+          height_cm: parseFloat(formData.height),
+          weight_kg: parseFloat(formData.weight),
+          target_weight_kg: parseFloat(formData.targetWeight),
+          activity_level: formData.activityLevel,
+          health_goal: formData.healthGoal,
+          allergies: []
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.detail || '회원가입에 실패했습니다.');
+        return;
+      }
+
+      // 토큰 저장
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', formData.email);
+
+      // 회원가입 성공 시 홈으로 이동
+      alert('회원가입이 완료되었습니다!');
+      navigate('/home');
+    } catch (error) {
+      console.error('Register error:', error);
+      setError('서버와의 통신에 실패했습니다.');
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

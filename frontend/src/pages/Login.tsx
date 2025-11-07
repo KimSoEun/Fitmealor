@@ -7,16 +7,44 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 임시 로그인 로직 (실제로는 API 호출)
-    if (email && password) {
-      // 로그인 성공 시 localStorage에 저장하고 홈으로 이동
-      localStorage.setItem('isLoggedIn', 'true');
-      navigate('/home');
-    } else {
+    if (!email || !password) {
       setError('이메일과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      // API 호출
+      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.detail || '로그인에 실패했습니다.');
+        return;
+      }
+
+      // 토큰 저장
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+
+      // 로그인 성공 시 홈으로 이동
+      navigate('/home');
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('서버와의 통신에 실패했습니다.');
     }
   };
 
