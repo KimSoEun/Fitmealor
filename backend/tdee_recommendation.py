@@ -161,6 +161,16 @@ def score_meal_for_tdee(meal: Dict[str, Any], macro_targets: Dict[str, float]) -
     # 100점 만점으로 변환 (편차가 클수록 점수 낮아짐)
     base_score = max(0, 100 - (avg_deviation * 100))
 
+    # 카테고리 기반 점수 조정 (조미식품, 과자류, 빵류, 떡류는 점수 삭감)
+    category = meal.get('category', '').lower()
+    penalty_keywords = ['조미', '과자', '빵', '떡']
+
+    # 카테고리에 해당 키워드가 포함되어 있으면 점수에 0.5 곱하기 (50% 삭감)
+    for keyword in penalty_keywords:
+        if keyword in category:
+            base_score *= 0.5
+            break
+
     return base_score
 
 
