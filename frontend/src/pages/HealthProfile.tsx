@@ -58,6 +58,8 @@ export default function HealthProfile() {
 
   const [tdeeInfo, setTdeeInfo] = useState<TDEEInfo | null>(null);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const bmi = calculateBMI(profile.weight, profile.height);
   const bmiCategory = getBMICategory(bmi);
@@ -67,9 +69,42 @@ export default function HealthProfile() {
     setEditedProfile(profile);
   };
 
-  const handleSave = () => {
-    setProfile(editedProfile);
-    alert('프로필이 저장되었습니다!');
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editedProfile.name,
+          age: editedProfile.age,
+          gender: editedProfile.gender,
+          height_cm: editedProfile.height,
+          weight_kg: editedProfile.weight,
+          target_weight_kg: editedProfile.targetWeight,
+          activity_level: editedProfile.activityLevel,
+          health_goal: editedProfile.healthGoal
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('프로필 저장 실패');
+      }
+
+      setProfile(editedProfile);
+      alert('프로필이 저장되었습니다!');
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      alert('프로필 저장에 실패했습니다.');
+    }
   };
 
   const handleInputChange = (field: string, value: string | number) => {
@@ -78,6 +113,54 @@ export default function HealthProfile() {
       [field]: value
     }));
   };
+
+  // Load user profile from API on component mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('로그인이 필요합니다.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('프로필 로드 실패');
+        }
+
+        const data = await response.json();
+        const loadedProfile = {
+          name: data.name,
+          age: data.age,
+          gender: data.gender,
+          height: data.height_cm,
+          weight: data.weight_kg,
+          targetWeight: data.target_weight_kg,
+          activityLevel: data.activity_level,
+          healthGoal: data.health_goal
+        };
+
+        setProfile(loadedProfile);
+        setEditedProfile(loadedProfile);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+        setError('프로필을 불러오는데 실패했습니다.');
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   useEffect(() => {
     const fetchTDEE = async () => {

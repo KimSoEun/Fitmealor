@@ -65,8 +65,8 @@ const Home: React.FC = () => {
     '유제품'
   ];
 
-  // 임시 프로필 데이터 (실제로는 로그인된 사용자 데이터 사용)
-  const userProfile = {
+  // 사용자 프로필 데이터
+  const [userProfile, setUserProfile] = useState({
     name: '김건강',
     age: 25,
     gender: '남성',
@@ -75,7 +75,7 @@ const Home: React.FC = () => {
     targetWeight: 65.0,
     activityLevel: '활동적',
     healthGoal: '근육증가'
-  };
+  });
 
   const calculateBMI = (weight: number, height: number): number => {
     const heightInMeters = height / 100;
@@ -136,20 +136,62 @@ const Home: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isAllergyDropdownOpen]);
 
+  // Load user profile from API on component mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('No token found, using default profile');
+          return;
+        }
+
+        const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error('Failed to load profile');
+          return;
+        }
+
+        const data = await response.json();
+        setUserProfile({
+          name: data.name,
+          age: data.age,
+          gender: data.gender,
+          height: data.height_cm,
+          weight: data.weight_kg,
+          targetWeight: data.target_weight_kg,
+          activityLevel: data.activity_level,
+          healthGoal: data.health_goal
+        });
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
   useEffect(() => {
     // 추천 식단 가져오기
     const fetchRecommendations = async () => {
       try {
-        // 임시 프로필 데이터 (실제로는 로그인된 사용자 데이터 사용)
+        // 사용자 프로필 데이터 사용
         const profileData = {
           user_id: 'demo_user',
-          age: 25,
-          gender: '남성',
-          height_cm: 175.0,
-          weight_kg: 70.0,
-          target_weight_kg: 65.0,
-          activity_level: '활동적',
-          health_goal: '근육증가'
+          age: userProfile.age,
+          gender: userProfile.gender,
+          height_cm: userProfile.height,
+          weight_kg: userProfile.weight,
+          target_weight_kg: userProfile.targetWeight,
+          activity_level: userProfile.activityLevel,
+          health_goal: userProfile.healthGoal
         };
 
         const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
@@ -197,7 +239,7 @@ const Home: React.FC = () => {
     };
 
     fetchRecommendations();
-  }, []);
+  }, [userProfile]);
 
   return (
     <div>
