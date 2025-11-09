@@ -38,6 +38,7 @@ const Home: React.FC = () => {
   });
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   // 22종 알러지 목록
   const allergyList = [
@@ -170,8 +171,10 @@ const Home: React.FC = () => {
           activityLevel: data.activity_level,
           healthGoal: data.health_goal
         });
+        setProfileLoaded(true);
       } catch (error) {
         console.error('Failed to load profile:', error);
+        setProfileLoaded(true); // 에러가 나도 기본값으로 진행
       }
     };
 
@@ -179,6 +182,11 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // 프로필이 로드되지 않았으면 실행하지 않음
+    if (!profileLoaded) {
+      return;
+    }
+
     // 추천 식단 가져오기
     const fetchRecommendations = async () => {
       try {
@@ -239,7 +247,7 @@ const Home: React.FC = () => {
     };
 
     fetchRecommendations();
-  }, [userProfile]);
+  }, [profileLoaded]); // userProfile 대신 profileLoaded를 의존성으로 사용
 
   return (
     <div>
