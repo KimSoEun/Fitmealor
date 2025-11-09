@@ -1026,14 +1026,14 @@ Rules:
 
 @app.post("/api/v1/recommendations/recommend")
 async def recommend_meals(request: RecommendationRequest):
-    # Import AI-based recommendation system
+    # Import TDEE-based recommendation system (fast mathematical algorithm)
     import sys
     sys.path.insert(0, '/Users/goorm/Fitmealor/backend')
-    from ai_recommendation import recommend_meals_with_ai
+    from tdee_recommendation import recommend_meals_by_tdee
 
-    # Get AI-based recommendations from database
+    # Get TDEE-based recommendations from database (fast)
     try:
-        result = recommend_meals_with_ai(
+        result = recommend_meals_by_tdee(
             gender=request.gender,
             age=request.age,
             weight_kg=request.weight_kg,
@@ -1047,7 +1047,7 @@ async def recommend_meals(request: RecommendationRequest):
         db_recommendations = result['recommendations']
 
     except Exception as e:
-        print(f"Error getting AI recommendations: {e}")
+        print(f"Error getting TDEE recommendations: {e}")
         # Fallback to simple calculation
         if request.gender.lower() == 'male':
             bmr = 10 * request.weight_kg + 6.25 * request.height_cm - 5 * request.age + 5
@@ -1061,12 +1061,12 @@ async def recommend_meals(request: RecommendationRequest):
         tdee_info = {'bmr': int(bmr), 'tdee': int(bmr * 1.55), 'adjusted_tdee': int(bmr * 1.55)}
         db_recommendations = []
 
-    # Use database recommendations (which are already AI-scored)
+    # Use database recommendations (which are already TDEE-scored)
     all_meals = db_recommendations if db_recommendations else []
     tdee = tdee_info.get('adjusted_tdee', tdee_info.get('tdee', 2000))
 
     print(f"\n{'='*90}")
-    print(f"🤖 AI RECOMMENDATION REQUEST")
+    print(f"⚡ TDEE-BASED RECOMMENDATION REQUEST")
     print(f"{'='*90}")
     print(f"User: {request.user_id}")
     print(f"Gender: {request.gender}, Age: {request.age}, Weight: {request.weight_kg}kg, Height: {request.height_cm}cm")
