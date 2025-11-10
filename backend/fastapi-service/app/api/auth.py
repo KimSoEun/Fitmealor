@@ -28,6 +28,13 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str
     name: Optional[str] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
+    activity_level: Optional[str] = None
+    health_goal: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -46,9 +53,9 @@ class UserProfile(BaseModel):
     name: Optional[str] = None
     age: Optional[int] = None
     gender: Optional[str] = None
-    height_cm: Optional[int] = None
-    weight_kg: Optional[int] = None
-    target_weight_kg: Optional[int] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
     activity_level: Optional[str] = None
     health_goal: Optional[str] = None
 
@@ -60,9 +67,9 @@ class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
     age: Optional[int] = None
     gender: Optional[str] = None
-    height_cm: Optional[int] = None
-    weight_kg: Optional[int] = None
-    target_weight_kg: Optional[int] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
     activity_level: Optional[str] = None
     health_goal: Optional[str] = None
 
@@ -104,12 +111,19 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
 
-    # Create new user
+    # Create new user with all profile information
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
         email=user_data.email,
         hashed_password=hashed_password,
-        name=user_data.name
+        name=user_data.name,
+        age=user_data.age,
+        gender=user_data.gender,
+        height_cm=user_data.height_cm,
+        weight_kg=user_data.weight_kg,
+        target_weight_kg=user_data.target_weight_kg,
+        activity_level=user_data.activity_level,
+        health_goal=user_data.health_goal
     )
 
     db.add(new_user)

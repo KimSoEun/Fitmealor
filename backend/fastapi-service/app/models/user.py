@@ -2,7 +2,7 @@
 User database model for authentication
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float
 from datetime import datetime
 from app.db.database import Base
 
@@ -17,9 +17,9 @@ class User(Base):
     name = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
     gender = Column(String, nullable=True)
-    height_cm = Column(Integer, nullable=True)
-    weight_kg = Column(Integer, nullable=True)
-    target_weight_kg = Column(Integer, nullable=True)
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    target_weight_kg = Column(Float, nullable=True)
     activity_level = Column(String, nullable=True)
     health_goal = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
