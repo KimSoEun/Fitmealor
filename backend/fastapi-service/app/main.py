@@ -10,7 +10,10 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.core.config import settings
-from app.api import meals, ocr, recommendations, health
+from app.api import meals, ocr, health, auth
+# Temporarily disabled due to missing torch dependency
+# from app.api import recommendations
+from app.db.database import init_db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,13 +25,17 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     logger.info("🚀 Starting Fitmealor FastAPI Service...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
-    logger.info(f"Database URL: {settings.DATABASE_URL[:30]}...")
-    
+
+    # Initialize database
+    logger.info("Initializing database...")
+    init_db()
+    logger.info("Database initialized successfully")
+
     # Initialize AI models here
     # await load_ai_models()
-    
+
     yield
-    
+
     logger.info("👋 Shutting down Fitmealor FastAPI Service...")
 
 
@@ -71,9 +78,11 @@ async def health_check():
 
 
 # Include routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(meals.router, prefix="/api/v1/meals", tags=["Meals"])
 app.include_router(ocr.router, prefix="/api/v1/ocr", tags=["OCR"])
-app.include_router(recommendations.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
+# Temporarily disabled due to missing torch dependency
+# app.include_router(recommendations.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
 
 
