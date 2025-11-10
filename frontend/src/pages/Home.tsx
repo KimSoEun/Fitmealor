@@ -144,6 +144,7 @@ const Home: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) {
           console.log('No token found, using default profile');
+          setProfileLoaded(true);  // 토큰이 없어도 기본값으로 진행
           return;
         }
 
@@ -157,6 +158,7 @@ const Home: React.FC = () => {
 
         if (!response.ok) {
           console.error('Failed to load profile');
+          setProfileLoaded(true);  // API 실패 시에도 기본값으로 진행
           return;
         }
 

@@ -61,26 +61,38 @@ def calculate_tdee(gender: str, age: int, weight_kg: float, height_cm: float, ac
     adjustment = goal_adjustments.get(health_goal, 0)
     adjusted_tdee = tdee + adjustment
 
-    # 4. 목표에 따른 다량영양소 비율
-    macro_ratios = {
-        '체중감량': {'protein': 0.40, 'carbs': 0.30, 'fat': 0.30},
-        'lose_weight': {'protein': 0.40, 'carbs': 0.30, 'fat': 0.30},
-        'weight_loss': {'protein': 0.40, 'carbs': 0.30, 'fat': 0.30},
-        '체중유지': {'protein': 0.30, 'carbs': 0.40, 'fat': 0.30},
-        'maintain': {'protein': 0.30, 'carbs': 0.40, 'fat': 0.30},
-        '근육증가': {'protein': 0.35, 'carbs': 0.45, 'fat': 0.20},
-        'gain_muscle': {'protein': 0.35, 'carbs': 0.45, 'fat': 0.20},
-        'muscle_gain': {'protein': 0.35, 'carbs': 0.45, 'fat': 0.20},
-        'bulk_up': {'protein': 0.30, 'carbs': 0.50, 'fat': 0.20}
+    # 4. 목표에 따른 단백질 계수 (체중 기준 g/kg)
+    protein_per_kg = {
+        '체중감량': 2.0,      # 근손실 방지를 위해 높게
+        'lose_weight': 2.0,
+        'weight_loss': 2.0,
+        '체중유지': 1.2,      # 일반 유지
+        'maintain': 1.2,
+        '근육증가': 2.0,      # 근육 합성을 위해 높게
+        'gain_muscle': 2.0,
+        'muscle_gain': 2.0,
+        'bulk_up': 1.8
     }
 
-    ratios = macro_ratios.get(health_goal, macro_ratios['maintain'])
+    protein_multiplier = protein_per_kg.get(health_goal, 1.2)
 
     # 5. 다량영양소 목표 계산
+    # 단백질: 체중 기준으로 계산 (상식적인 범위)
+    protein_g = weight_kg * protein_multiplier
+    protein_calories = protein_g * 4
+
+    # 지방: 전체 칼로리의 25-30% (건강한 범위)
+    fat_calories = adjusted_tdee * 0.25
+    fat_g = fat_calories / 9
+
+    # 탄수화물: 나머지 칼로리
+    carbs_calories = adjusted_tdee - protein_calories - fat_calories
+    carbs_g = carbs_calories / 4
+
     macro_targets = {
-        'protein_g': (adjusted_tdee * ratios['protein']) / 4,  # 4 cal/g
-        'carbs_g': (adjusted_tdee * ratios['carbs']) / 4,      # 4 cal/g
-        'fat_g': (adjusted_tdee * ratios['fat']) / 9,          # 9 cal/g
+        'protein_g': protein_g,
+        'carbs_g': carbs_g,
+        'fat_g': fat_g,
         'calories': adjusted_tdee
     }
 

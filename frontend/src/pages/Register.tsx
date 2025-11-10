@@ -92,14 +92,9 @@ export default function Register() {
         return;
       }
 
-      // 토큰 저장
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', formData.email);
-
-      // 회원가입 성공 시 홈으로 이동
-      alert('회원가입이 완료되었습니다!');
-      navigate('/home');
+      // 회원가입 성공 시 로그인 페이지로 이동
+      alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+      navigate('/login');
     } catch (error) {
       console.error('Register error:', error);
       setError('서버와의 통신에 실패했습니다.');
