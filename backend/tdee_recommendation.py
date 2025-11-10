@@ -191,31 +191,77 @@ def recommend_meals_by_tdee(
     num_recommendations: int = 20
 ) -> Dict[str, Any]:
     """
-    TDEE 기반 식품 추천
+    TDEE 기반 식품 추천 (최적화된 버전)
 
     Returns:
         Dict with TDEE info and recommended meals
     """
     # 1. TDEE 계산
     tdee_info = calculate_tdee(gender, age, weight_kg, height_cm, activity_level, health_goal)
+    macro_targets = tdee_info['macro_targets']
 
-    # 2. 데이터베이스에서 식품 가져오기
-    meals = get_meals_from_db(limit=2000)  # 충분한 수의 식품 가져오기
+    # 한 끼 목표 계산
+    meal_cal_target = macro_targets['calories'] / 3
+    meal_protein_target = macro_targets['protein_g'] / 3
+    meal_carbs_target = macro_targets['carbs_g'] / 3
+    meal_fat_target = macro_targets['fat_g'] / 3
 
-    # 3. 각 식품에 점수 부여
-    scored_meals = []
-    for meal in meals:
-        score = score_meal_for_tdee(meal, tdee_info['macro_targets'])
-        scored_meals.append({
-            **meal,
-            'tdee_score': score
+    # 2. SQL로 직접 점수 계산하여 상위 N개만 가져오기 (매우 빠름!)
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    query = """
+        SELECT
+            id,
+            name,
+            cuisine,
+            calories,
+            protein_g,
+            carbs_g,
+            fat_g,
+            source,
+            (
+                ABS(calories - ?) +
+                ABS(protein_g - ?) * 4 +
+                ABS(carbs_g - ?) * 4 +
+                ABS(fat_g - ?) * 4
+            ) as score_diff
+        FROM meals
+        WHERE calories > 0 AND protein_g >= 0 AND carbs_g >= 0 AND fat_g >= 0
+        ORDER BY score_diff ASC
+        LIMIT ?
+    """
+
+    cursor.execute(query, (
+        meal_cal_target,
+        meal_protein_target,
+        meal_carbs_target,
+        meal_fat_target,
+        num_recommendations * 3  # 여유있게 3배 가져오기
+    ))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    # 3. 결과 변환
+    meals = []
+    for row in rows:
+        meals.append({
+            'meal_id': row[0],
+            'name': row[1],
+            'category': row[2] or '기타',
+            'calories': row[3] or 0,
+            'protein_g': row[4] or 0.0,
+            'carbs_g': row[5] or 0.0,
+            'fat_g': row[6] or 0.0,
+            'sodium_mg': 0,
+            'score': 80,
+            'brand': row[7] or '',
+            'tdee_score': 100 - min(100, row[8])  # 편차가 작을수록 점수 높음
         })
 
-    # 4. 점수순으로 정렬
-    scored_meals.sort(key=lambda x: x['tdee_score'], reverse=True)
-
-    # 5. 상위 N개 반환
-    top_meals = scored_meals[:num_recommendations]
+    # 4. 상위 N개만 반환
+    top_meals = meals[:num_recommendations]
 
     return {
         'tdee_info': tdee_info,
