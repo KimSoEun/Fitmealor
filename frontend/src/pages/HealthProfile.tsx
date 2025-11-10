@@ -234,7 +234,7 @@ export default function HealthProfile() {
 
         {/* Profile Info Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{currentLang === 'en' ? 'Personal Details' : ''}</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{currentLang === 'en' ? 'Personal Details' : '기본 정보'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Name' : '이름'}</label>
@@ -383,32 +383,32 @@ export default function HealthProfile() {
         {/* TDEE Information Card */}
         {tdeeInfo && (
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">칼로리 및 영양소 목표</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">{currentLang === 'en' ? 'Calorie & Nutrient Goals' : '칼로리 및 영양소 목표'}</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-600 mb-1">기초대사량 (BMR)</p>
+                <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Basal Metabolic Rate (BMR)' : '기초대사량 (BMR)'}</p>
                 <p className="text-3xl font-bold text-gray-900">{tdeeInfo.bmr.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">kcal/일</p>
+                <p className="text-xs text-gray-500 mt-1">{currentLang === 'en' ? 'kcal/day' : 'kcal/일'}</p>
               </div>
               <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-600 mb-1">일일 소모 칼로리 (TDEE)</p>
+                <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Total Daily Energy Expenditure (TDEE)' : '일일 소모 칼로리 (TDEE)'}</p>
                 <p className="text-3xl font-bold text-indigo-600">{tdeeInfo.tdee.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">kcal/일</p>
+                <p className="text-xs text-gray-500 mt-1">{currentLang === 'en' ? 'kcal/day' : 'kcal/일'}</p>
               </div>
               <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-600 mb-1">목표 칼로리</p>
+                <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Target Calories' : '목표 칼로리'}</p>
                 <p className="text-3xl font-bold text-purple-600">{tdeeInfo.adjusted_tdee.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">kcal/일</p>
+                <p className="text-xs text-gray-500 mt-1">{currentLang === 'en' ? 'kcal/day' : 'kcal/일'}</p>
               </div>
             </div>
 
             <div className="bg-white rounded-lg p-5 shadow-sm">
-              <h3 className="text-base font-semibold text-gray-800 mb-4">일일 영양소 목표</h3>
+              <h3 className="text-base font-semibold text-gray-800 mb-4">{currentLang === 'en' ? 'Daily Nutrient Goals' : '일일 영양소 목표'}</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-700">단백질</span>
+                    <span className="text-sm font-medium text-gray-700">{currentLang === 'en' ? 'Protein' : '단백질'}</span>
                     <span className="text-lg font-bold text-red-600">{tdeeInfo.macro_targets.protein_g.toFixed(1)}g</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -417,7 +417,7 @@ export default function HealthProfile() {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-700">탄수화물</span>
+                    <span className="text-sm font-medium text-gray-700">{currentLang === 'en' ? 'Carbohydrates' : '탄수화물'}</span>
                     <span className="text-lg font-bold text-green-600">{tdeeInfo.macro_targets.carbs_g.toFixed(1)}g</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -426,7 +426,7 @@ export default function HealthProfile() {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-700">지방</span>
+                    <span className="text-sm font-medium text-gray-700">{currentLang === 'en' ? 'Fat' : '지방'}</span>
                     <span className="text-lg font-bold text-yellow-600">{tdeeInfo.macro_targets.fat_g.toFixed(1)}g</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -440,24 +440,24 @@ export default function HealthProfile() {
 
         {/* Body Metrics Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">체중 정보</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{currentLang === 'en' ? 'Body Metrics' : '체중 정보'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">현재 체중</p>
+              <p className="text-sm text-gray-600 mb-2">{currentLang === 'en' ? 'Current Weight' : '현재 체중'}</p>
               <p className="text-3xl font-bold text-blue-600">{profile.weight} kg</p>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">목표 체중</p>
+              <p className="text-sm text-gray-600 mb-2">{currentLang === 'en' ? 'Goal Weight' : '목표 체중'}</p>
               <p className="text-3xl font-bold text-green-600">{profile.targetWeight} kg</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">키</p>
+              <p className="text-sm text-gray-600 mb-2">{currentLang === 'en' ? 'Height' : '키'}</p>
               <p className="text-3xl font-bold text-purple-600">{profile.height} cm</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-2">BMI</p>
               <p className="text-2xl font-bold mb-3" style={{ color: bmiCategory.color }}>
-                {bmi.toFixed(1)} <span className="text-sm">({bmiCategory.label})</span>
+                {bmi.toFixed(1)} <span className="text-sm">({currentLang === 'en' ? bmiCategory.description : bmiCategory.label})</span>
               </p>
               {/* BMI Bar */}
               <div className="relative h-5 rounded overflow-hidden shadow-sm">
@@ -476,7 +476,7 @@ export default function HealthProfile() {
           </div>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">건강 목표</p>
+            <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Health Goal' : '건강 목표'}</p>
             <p className="text-lg font-semibold text-gray-800">{profile.healthGoal}</p>
           </div>
         </div>
