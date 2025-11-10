@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BMICategory {
   label: string;
@@ -60,6 +61,8 @@ export default function HealthProfile() {
   const [editedProfile, setEditedProfile] = useState(profile);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { t, i18n } = useTranslation();
+  const [currentLang, setCurrentLang] = useState(i18n.language);
 
   const bmi = calculateBMI(profile.weight, profile.height);
   const bmiCategory = getBMICategory(bmi);
@@ -113,6 +116,18 @@ export default function HealthProfile() {
       [field]: value
     }));
   };
+
+  useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      setCurrentLang(lng);
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
 
   // Load user profile from API on component mount
   useEffect(() => {
@@ -200,29 +215,29 @@ export default function HealthProfile() {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">건강 프로필</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{currentLang === 'en' ? 'Health Profile' : '건강 프로필'}</h1>
           <div className="flex gap-2">
             <button
               onClick={handleCancel}
               className="bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition duration-200"
             >
-              취소
+              {currentLang === 'en' ? 'Cancel' : '취소'}
             </button>
             <button
               onClick={handleSave}
               className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition duration-200"
             >
-              저장
+              {currentLang === 'en' ? 'Save' : '저장'}
             </button>
           </div>
         </div>
 
         {/* Profile Info Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">기본 정보</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{currentLang === 'en' ? 'Personal Details' : ''}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm text-gray-500 mb-2">이름</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Name' : '이름'}</label>
               <input
                 type="text"
                 value={editedProfile.name}
@@ -231,7 +246,7 @@ export default function HealthProfile() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">나이</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Age' : '나이'}</label>
               <input
                 type="number"
                 value={editedProfile.age}
@@ -240,18 +255,18 @@ export default function HealthProfile() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">성별</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Sex' : '성별'}</label>
               <select
                 value={editedProfile.gender}
                 onChange={(e) => handleInputChange('gender', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="남성">남성</option>
-                <option value="여성">여성</option>
+                <option value="남성">{currentLang === 'en' ? 'Male' : '남성'}</option>
+                <option value="여성">{currentLang === 'en' ? 'Female' : '여성'}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">키 (cm)</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Height' : '키'} (cm)</label>
               <input
                 type="number"
                 value={editedProfile.height}
@@ -260,7 +275,7 @@ export default function HealthProfile() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">현재 체중 (kg)</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Current Weight' : '현재 체중'} (kg)</label>
               <input
                 type="number"
                 value={editedProfile.weight}
@@ -269,7 +284,7 @@ export default function HealthProfile() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">목표 체중 (kg)</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Goal Weight' : '목표 체중'} (kg)</label>
               <input
                 type="number"
                 value={editedProfile.targetWeight}
@@ -278,28 +293,28 @@ export default function HealthProfile() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">활동량</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Activity Level' : '활동량'}</label>
               <select
                 value={editedProfile.activityLevel}
                 onChange={(e) => handleInputChange('activityLevel', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="비활동적">비활동적</option>
-                <option value="가볍게 활동적">가볍게 활동적</option>
-                <option value="활동적">활동적</option>
-                <option value="매우 활동적">매우 활동적</option>
+                <option value={currentLang === 'en' ? 'sedentary' : '비활동적'}>{currentLang === 'en' ? 'Sedentary' : '비활동적'}</option>
+                <option value={currentLang === 'en' ? 'lignt' : '가볍게 활동적'}>{currentLang === 'en' ? 'Light' : '가볍게 활동적'}</option>
+                <option value={currentLang === 'en' ? 'active' : '활동적'}>{currentLang === 'en' ? 'Active' : '활동적'}</option>
+                <option value={currentLang === 'en' ? 'very_active' : '매우 활동적'}>{currentLang === 'en' ? 'Very Active' : '매우 활동적'}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-2">건강 목표</label>
+              <label className="block text-sm text-gray-500 mb-2">{currentLang === 'en' ? 'Health Goal' : '건강 목표'}</label>
               <select
                 value={editedProfile.healthGoal}
                 onChange={(e) => handleInputChange('healthGoal', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="체중감량">체중감량</option>
-                <option value="체중유지">체중유지</option>
-                <option value="근육증가">근육증가</option>
+                <option value={currentLang === 'en' ? 'wight_loss' : '체중감량'}>{currentLang === 'en' ? 'Weight Loss' : '체중감량'}</option>
+                <option value={currentLang === 'en' ? 'maintain_weight' : '체중유지'}>{currentLang === 'en' ? 'Maintain Weight' : '체중유지'}</option>
+                <option value={currentLang === 'en' ? 'muscle_gain' : '근육증가'}>{currentLang === 'en' ? 'Muscle Gain' : '근육증가'}</option>
               </select>
             </div>
           </div>
@@ -307,7 +322,7 @@ export default function HealthProfile() {
 
         {/* BMI Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">체질량 지수 (BMI)</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">{currentLang === 'en' ? 'BMI' : '체질량 지수 (BMI)'}</h2>
 
           {/* Current BMI Display */}
           <div className="text-center mb-8">
@@ -318,9 +333,8 @@ export default function HealthProfile() {
               <span className="text-3xl text-gray-600">kg/m²</span>
             </div>
             <p className="mt-4 text-2xl font-semibold" style={{ color: bmiCategory.color }}>
-              {bmiCategory.label}
+              {currentLang === 'en' ? bmiCategory.description : bmiCategory.label}
             </p>
-            <p className="mt-2 text-base text-gray-500">{bmiCategory.description}</p>
           </div>
 
           {/* BMI Bar Chart */}
@@ -344,7 +358,7 @@ export default function HealthProfile() {
                   className="flex-1 flex items-center justify-center text-xs font-medium text-white"
                   style={{ backgroundColor: category.color }}
                 >
-                  {category.label}
+                  {currentLang === 'en' ? category.description : category.label}
                 </div>
               ))}
             </div>
