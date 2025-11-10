@@ -127,7 +127,6 @@ const Recommendations: React.FC = () => {
                   {meal.score.toFixed(0)}{currentLang === 'en' ? ' pts' : '점'}
                 </span>
               </div>
-              <div className="text-sm text-gray-600 mb-4">{meal.category}</div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600">{currentLang === 'en' ? 'Calories' : '칼로리'}</span>

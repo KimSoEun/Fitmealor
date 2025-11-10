@@ -600,28 +600,27 @@ const Home: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <div className="text-sm text-gray-600 mb-3">{meal.category}</div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">칼로리</span>
+                      <span className="text-gray-600">{currentLang === 'en' ? 'Calories' : '칼로리'}</span>
                       <span className="font-medium text-gray-900">{meal.calories} kcal</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">단백질</span>
+                      <span className="text-gray-600">{currentLang === 'en' ? 'Protein' : '단백질'}</span>
                       <span className="font-medium text-gray-900">{meal.protein_g.toFixed(1)} g</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">탄수화물</span>
+                      <span className="text-gray-600">{currentLang === 'en' ? 'Carbs' : '탄수화물'}</span>
                       <span className="font-medium text-gray-900">{meal.carbs_g.toFixed(1)} g</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">지방</span>
+                      <span className="text-gray-600">{currentLang === 'en' ? 'Fat' : '지방'}</span>
                       <span className="font-medium text-gray-900">{meal.fat_g.toFixed(1)} g</span>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">추천 점수</span>
+                      <span className="text-sm text-gray-600">{currentLang === 'en' ? 'Recommendation Score' : '추천 점수'}</span>
                       <span className="text-lg font-bold text-blue-600">{meal.score.toFixed(0)}</span>
                     </div>
                   </div>
