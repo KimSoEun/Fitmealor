@@ -109,7 +109,7 @@ def get_meals_from_db(limit: int = 1000) -> List[Dict[str, Any]]:
 
     # 영양성분이 있는 식품만 가져오기 (칼로리 > 0)
     query = """
-        SELECT meal_id, name, category, calories, protein_g, carbs_g, fat_g, sodium_mg, score, brand
+        SELECT id, name, cuisine, calories, protein_g, carbs_g, fat_g, source
         FROM meals
         WHERE calories > 0 AND protein_g >= 0 AND carbs_g >= 0 AND fat_g >= 0
         ORDER BY RANDOM()
@@ -130,9 +130,9 @@ def get_meals_from_db(limit: int = 1000) -> List[Dict[str, Any]]:
             'protein_g': row[4] or 0.0,
             'carbs_g': row[5] or 0.0,
             'fat_g': row[6] or 0.0,
-            'sodium_mg': row[7] or 0,
-            'score': row[8] or 80,
-            'brand': row[9] or ''
+            'sodium_mg': 0,  # 새 DB에는 없는 필드
+            'score': 80,     # 기본 점수
+            'brand': row[7] or ''  # source를 brand로 사용
         })
 
     return meals
