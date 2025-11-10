@@ -43,31 +43,36 @@ const Home: React.FC = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [currentLang, setCurrentLang] = useState(i18n.language);
 
-  // 22종 알러지 목록
-  const allergyList = [
-    '난류(계란)',
-    '우유',
-    '메밀',
-    '땅콩',
-    '대두',
-    '밀',
-    '고등어',
-    '게',
-    '새우',
-    '돼지고기',
-    '복숭아',
-    '토마토',
-    '아황산류',
-    '호두',
-    '닭고기',
-    '쇠고기',
-    '오징어',
-    '조개류',
-    '잣',
-    '갑각류',
-    '견과류',
-    '유제품'
-  ];
+  // 22종 알러지 목록 (Language-aware)
+  const allergyTranslations: Record<string, { ko: string; en: string }> = {
+    'eggs': { ko: '난류(계란)', en: 'Eggs' },
+    'milk': { ko: '우유', en: 'Milk' },
+    'buckwheat': { ko: '메밀', en: 'Buckwheat' },
+    'peanuts': { ko: '땅콩', en: 'Peanuts' },
+    'soybeans': { ko: '대두', en: 'Soybeans' },
+    'wheat': { ko: '밀', en: 'Wheat' },
+    'mackerel': { ko: '고등어', en: 'Mackerel' },
+    'crab': { ko: '게', en: 'Crab' },
+    'shrimp': { ko: '새우', en: 'Shrimp' },
+    'pork': { ko: '돼지고기', en: 'Pork' },
+    'peach': { ko: '복숭아', en: 'Peach' },
+    'tomato': { ko: '토마토', en: 'Tomato' },
+    'sulfites': { ko: '아황산류', en: 'Sulfites' },
+    'walnuts': { ko: '호두', en: 'Walnuts' },
+    'chicken': { ko: '닭고기', en: 'Chicken' },
+    'beef': { ko: '쇠고기', en: 'Beef' },
+    'squid': { ko: '오징어', en: 'Squid' },
+    'shellfish': { ko: '조개류', en: 'Shellfish' },
+    'pine_nuts': { ko: '잣', en: 'Pine Nuts' },
+    'crustaceans': { ko: '갑각류', en: 'Crustaceans' },
+    'tree_nuts': { ko: '견과류', en: 'Tree Nuts' },
+    'dairy': { ko: '유제품', en: 'Dairy' }
+  };
+
+  const allergyKeys = Object.keys(allergyTranslations);
+  const allergyList = allergyKeys.map(key =>
+    currentLang === 'en' ? allergyTranslations[key].en : allergyTranslations[key].ko
+  );
 
   // 사용자 프로필 데이터
   const [userProfile, setUserProfile] = useState({
@@ -484,9 +489,11 @@ const Home: React.FC = () => {
       {/* 추천 식단 Section */}
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">맞춤 추천 식단</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {currentLang === 'en' ? 'Personalized Meal Recommendations' : '맞춤 추천 식단'}
+          </h2>
           <Link to="/recommendations" className="text-blue-600 hover:text-blue-700 font-medium">
-            더보기 →
+            {currentLang === 'en' ? 'View More →' : '더보기 →'}
           </Link>
         </div>
 
@@ -500,7 +507,7 @@ const Home: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
             <span className="font-medium text-gray-700">
-              알러지 필터
+              {currentLang === 'en' ? 'Allergy Filter' : '알러지 필터'}
               {selectedAllergies.length > 0 && (
                 <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                   {selectedAllergies.length}
@@ -522,13 +529,15 @@ const Home: React.FC = () => {
             <div className="absolute top-full left-0 mt-2 w-full md:w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-10 max-h-96 overflow-y-auto">
               <div className="p-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold text-gray-900">알러지 항목 선택</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    {currentLang === 'en' ? 'Select Allergy Items' : '알러지 항목 선택'}
+                  </h3>
                   {selectedAllergies.length > 0 && (
                     <button
                       onClick={() => setSelectedAllergies([])}
                       className="text-xs text-red-600 hover:text-red-700 font-medium"
                     >
-                      전체 해제
+                      {currentLang === 'en' ? 'Clear All' : '전체 해제'}
                     </button>
                   )}
                 </div>
@@ -565,7 +574,9 @@ const Home: React.FC = () => {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">추천 식단을 불러오는 중...</p>
+            <p className="mt-4 text-gray-600">
+              {currentLang === 'en' ? 'Loading recommendations...' : '추천 식단을 불러오는 중...'}
+            </p>
           </div>
         ) : recommendations.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
