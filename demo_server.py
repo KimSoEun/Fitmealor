@@ -210,6 +210,7 @@ class FindAccount(BaseModel):
     email: EmailStr
 
 class ProfileUpdate(BaseModel):
+    name: str
     age: int
     gender: str
     height_cm: float
@@ -715,6 +716,7 @@ async def update_profile(profile: ProfileUpdate, authorization: Optional[str] = 
     # Update user data in database
     cursor.execute("""
         UPDATE users SET
+            name = ?,
             age = ?,
             gender = ?,
             height_cm = ?,
@@ -725,6 +727,7 @@ async def update_profile(profile: ProfileUpdate, authorization: Optional[str] = 
             allergies = ?
         WHERE email = ?
     """, (
+        profile.name,
         profile.age,
         profile.gender,
         profile.height_cm,
@@ -742,7 +745,7 @@ async def update_profile(profile: ProfileUpdate, authorization: Optional[str] = 
     # Return updated user info
     user_response = {
         "email": email,
-        "name": user['name'],
+        "name": profile.name,
         "age": profile.age,
         "gender": profile.gender,
         "height_cm": profile.height_cm,

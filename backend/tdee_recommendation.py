@@ -232,6 +232,8 @@ def recommend_meals_by_tdee(
             carbs_g,
             fat_g,
             source,
+            name_en,
+            name_kr,
             (
                 ABS(calories - ?) +
                 ABS(protein_g - ?) * 4 +
@@ -258,6 +260,9 @@ def recommend_meals_by_tdee(
     # 3. 결과 변환
     meals = []
     for row in rows:
+        # TDEE 점수 계산 (편차가 작을수록 점수 높음)
+        tdee_score = max(0, 100 - min(100, row[10] / 10))  # score_diff를 10으로 나눠서 점수 범위 조정
+
         meals.append({
             'meal_id': row[0],
             'name': row[1],
@@ -267,9 +272,11 @@ def recommend_meals_by_tdee(
             'carbs_g': row[5] or 0.0,
             'fat_g': row[6] or 0.0,
             'sodium_mg': 0,
-            'score': 80,
+            'score': int(tdee_score),  # TDEE 기반 점수 사용
             'brand': row[7] or '',
-            'tdee_score': 100 - min(100, row[8])  # 편차가 작을수록 점수 높음
+            'name_en': row[8] or row[1],  # name_en이 없으면 원래 이름 사용
+            'name_kr': row[9] or row[1],  # name_kr이 없으면 원래 이름 사용
+            'tdee_score': tdee_score
         })
 
     # 4. 상위 N개만 반환

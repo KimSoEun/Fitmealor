@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Meal {
   name: string;
+  name_en?: string;
+  name_kr?: string;
   calories: number;
   protein_g: number;
   carbs_g: number;
@@ -11,8 +14,10 @@ interface Meal {
 }
 
 const Recommendations: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [recommendations, setRecommendations] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentLang, setCurrentLang] = useState(i18n.language);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -38,6 +43,8 @@ const Recommendations: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('API Response data:', data);
+          console.log('First recommendation:', data.recommendations?.[0]);
           const excludedCategories = ['커피', '영양제', '건강기능식품', '음료', '차/음료', '보충제', '비타민'];
           const filteredMeals = data.recommendations.filter((meal: Meal & {category: string}) => {
             const category = meal.category.toLowerCase();
@@ -70,6 +77,26 @@ const Recommendations: React.FC = () => {
     fetchRecommendations();
   }, []);
 
+  useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      setCurrentLang(lng);
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
+
+  const getDisplayName = (meal: Meal): string => {
+    if (currentLang === 'en') {
+      return meal.name_en || meal.name;
+    } else {
+      return meal.name_kr || meal.name;
+    }
+  };
+
   return (
     <div>
       <div className="mb-8">
@@ -87,7 +114,7 @@ const Recommendations: React.FC = () => {
           {recommendations.map((meal, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">{meal.name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{getDisplayName(meal)}</h3>
                 <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded">
                   {meal.score.toFixed(0)}점
                 </span>

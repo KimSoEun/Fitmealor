@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 interface Meal {
   name: string;
+  name_en?: string;
+  name_kr?: string;
   calories: number;
   protein_g: number;
   carbs_g: number;
@@ -25,7 +27,7 @@ interface TDEEInfo {
 }
 
 const Home: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [recommendations, setRecommendations] = useState<Meal[]>([]);
   const [tdeeInfo, setTdeeInfo] = useState<TDEEInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,7 @@ const Home: React.FC = () => {
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [currentLang, setCurrentLang] = useState(i18n.language);
 
   // 22종 알러지 목록
   const allergyList = [
@@ -84,6 +87,16 @@ const Home: React.FC = () => {
   };
 
   const bmi = calculateBMI(userProfile.weight, userProfile.height);
+
+  const getDisplayName = (meal: Meal): string => {
+    const displayName = currentLang === 'en'
+      ? (meal.name_en || meal.name)
+      : (meal.name_kr || meal.name);
+
+    console.log(`getDisplayName: currentLang=${currentLang}, name=${meal.name}, name_en=${meal.name_en}, name_kr=${meal.name_kr}, returning=${displayName}`);
+
+    return displayName;
+  };
 
   // 식단 선택/해제 핸들러
   const handleMealToggle = (meal: Meal) => {
@@ -184,6 +197,20 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      console.log('Language changed to:', lng);
+      setCurrentLang(lng);
+    };
+
+    console.log('Setting up language change listener, initial language:', i18n.language);
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
+
+  useEffect(() => {
     // 프로필이 로드되지 않았으면 실행하지 않음
     if (!profileLoaded) {
       return;
@@ -262,22 +289,26 @@ const Home: React.FC = () => {
       {/* 사용자 프로필 Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">내 프로필</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {currentLang === 'en' ? 'My Profile' : '내 프로필'}
+          </h2>
           <Link to="/health-profile" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-            자세히 보기 →
+            {currentLang === 'en' ? 'View Details →' : '자세히 보기 →'}
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">이름</p>
+            <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Name' : '이름'}</p>
             <p className="text-lg font-semibold text-gray-900">{userProfile.name}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">나이</p>
-            <p className="text-lg font-semibold text-gray-900">{userProfile.age}세</p>
+            <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Age' : '나이'}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {userProfile.age}{currentLang === 'en' ? ' years old' : '세'}
+            </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">키 / 체중</p>
+            <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Height / Weight' : '키 / 체중'}</p>
             <p className="text-lg font-semibold text-gray-900">{userProfile.height}cm / {userProfile.weight}kg</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
@@ -287,11 +318,11 @@ const Home: React.FC = () => {
         </div>
         <div className="mt-4 flex gap-4">
           <div className="flex-1 bg-green-50 rounded-lg p-3">
-            <p className="text-sm text-gray-600 mb-1">건강 목표</p>
+            <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Health Goal' : '건강 목표'}</p>
             <p className="text-base font-semibold text-green-700">{userProfile.healthGoal}</p>
           </div>
           <div className="flex-1 bg-purple-50 rounded-lg p-3">
-            <p className="text-sm text-gray-600 mb-1">목표 체중</p>
+            <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Target Weight' : '목표 체중'}</p>
             <p className="text-base font-semibold text-purple-700">{userProfile.targetWeight}kg</p>
           </div>
         </div>
@@ -300,30 +331,54 @@ const Home: React.FC = () => {
       {/* TDEE 정보 Section */}
       {tdeeInfo && (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">나의 칼로리 및 영양소 목표</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {currentLang === 'en' ? 'My Calorie and Nutrition Goals' : '나의 칼로리 및 영양소 목표'}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <p className="text-sm text-gray-600 mb-1">기초대사량 (BMR)</p>
-              <p className="text-2xl font-bold text-gray-900">{tdeeInfo.bmr.toLocaleString()} <span className="text-xs text-gray-500">kcal/일</span></p>
+              <p className="text-sm text-gray-600 mb-1">
+                {currentLang === 'en' ? 'Basal Metabolic Rate (BMR)' : '기초대사량 (BMR)'}
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {tdeeInfo.bmr.toLocaleString()} <span className="text-xs text-gray-500">
+                  {currentLang === 'en' ? 'kcal/day' : 'kcal/일'}
+                </span>
+              </p>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <p className="text-sm text-gray-600 mb-1">일일 소모 칼로리 (TDEE)</p>
-              <p className="text-2xl font-bold text-blue-600">{tdeeInfo.tdee.toLocaleString()} <span className="text-xs text-gray-500">kcal/일</span></p>
+              <p className="text-sm text-gray-600 mb-1">
+                {currentLang === 'en' ? 'Total Daily Energy Expenditure (TDEE)' : '일일 소모 칼로리 (TDEE)'}
+              </p>
+              <p className="text-2xl font-bold text-blue-600">
+                {tdeeInfo.tdee.toLocaleString()} <span className="text-xs text-gray-500">
+                  {currentLang === 'en' ? 'kcal/day' : 'kcal/일'}
+                </span>
+              </p>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <p className="text-sm text-gray-600 mb-1">목표 칼로리</p>
-              <p className="text-2xl font-bold text-indigo-600">{tdeeInfo.adjusted_tdee.toLocaleString()} <span className="text-xs text-gray-500">kcal/일 ({userProfile.healthGoal})</span></p>
+              <p className="text-sm text-gray-600 mb-1">
+                {currentLang === 'en' ? 'Target Calories' : '목표 칼로리'}
+              </p>
+              <p className="text-2xl font-bold text-indigo-600">
+                {tdeeInfo.adjusted_tdee.toLocaleString()} <span className="text-xs text-gray-500">
+                  {currentLang === 'en' ? 'kcal/day' : 'kcal/일'} ({userProfile.healthGoal})
+                </span>
+              </p>
             </div>
           </div>
 
           {/* 애니메이션 게이지 바 섹션 */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
-            <p className="text-lg font-semibold text-gray-800 mb-6">일일 영양소 목표</p>
+            <p className="text-lg font-semibold text-gray-800 mb-6">
+              {currentLang === 'en' ? 'Daily Nutrition Goals' : '일일 영양소 목표'}
+            </p>
             <div className="space-y-6">
               {/* 칼로리 게이지 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">칼로리</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {currentLang === 'en' ? 'Calories' : '칼로리'}
+                  </span>
                   <div className="text-right">
                     <span className="text-lg font-bold text-purple-600">{currentNutrition.calories.toFixed(0)}</span>
                     <span className="text-sm text-gray-500"> / {tdeeInfo.macro_targets.calories.toFixed(0)} kcal</span>
@@ -347,7 +402,9 @@ const Home: React.FC = () => {
               {/* 단백질 게이지 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">단백질</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {currentLang === 'en' ? 'Protein' : '단백질'}
+                  </span>
                   <div className="text-right">
                     <span className="text-lg font-bold text-red-600">{currentNutrition.protein.toFixed(1)}</span>
                     <span className="text-sm text-gray-500"> / {tdeeInfo.macro_targets.protein_g.toFixed(1)} g</span>
@@ -371,7 +428,9 @@ const Home: React.FC = () => {
               {/* 탄수화물 게이지 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">탄수화물</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {currentLang === 'en' ? 'Carbs' : '탄수화물'}
+                  </span>
                   <div className="text-right">
                     <span className="text-lg font-bold text-green-600">{currentNutrition.carbs.toFixed(1)}</span>
                     <span className="text-sm text-gray-500"> / {tdeeInfo.macro_targets.carbs_g.toFixed(1)} g</span>
@@ -395,7 +454,9 @@ const Home: React.FC = () => {
               {/* 지방 게이지 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">지방</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {currentLang === 'en' ? 'Fat' : '지방'}
+                  </span>
                   <div className="text-right">
                     <span className="text-lg font-bold text-yellow-600">{currentNutrition.fat.toFixed(1)}</span>
                     <span className="text-sm text-gray-500"> / {tdeeInfo.macro_targets.fat_g.toFixed(1)} g</span>
@@ -519,7 +580,7 @@ const Home: React.FC = () => {
                   onClick={() => handleMealToggle(meal)}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 flex-1">{meal.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 flex-1">{getDisplayName(meal)}</h3>
                     {isSelected && (
                       <div className="flex-shrink-0 bg-green-500 rounded-full p-1">
                         <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
