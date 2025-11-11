@@ -32,19 +32,19 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-4">
               {!isAuthPage && (
                 <>
-                  <a href="/home" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('home')}</a>
-                  <a href="/health-profile" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('health_profile')}</a>
-                  <a href="/ocr-scan" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('ocr_scan')}</a>
-                  <a href="/recommendations" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('recommendations')}</a>
+                  <a href="/home" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_home')}</a>
+                  <a href="/health-profile" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_health_profile')}</a>
+                  <a href="/ocr-scan" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_ocr_scan')}</a>
+                  <a href="/recommendations" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_recommendations')}</a>
                   <button
                     onClick={() => {
                       localStorage.removeItem('isLoggedIn');
-                      alert(t('logout') + ' successfully.');
+                      alert(t('nav_logout') + ' successfully.');
                       window.location.href = '/login';
                     }}
                     className="text-gray-700 hover:text-red-600 px-3 py-2"
                   >
-                    {t('logout')}
+                    {t('nav_logout')}
                   </button>
                 </>
               )}

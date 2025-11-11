@@ -142,7 +142,7 @@ export default function Register() {
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
-                placeholder="홍길동"
+                placeholder={t('register.홍길동')}
                 required
               />
             </div>
@@ -240,9 +240,9 @@ export default function Register() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                   required
                 >
-                  <option value="여성">여성</option>
-                  <option value="남성">남성</option>
-                  <option value="선택 안 함">선택 안 함</option>
+                  <option value={t('register.여성')}>여성</option>
+                  <option value={t('register.남성')}>남성</option>
+                  <option value={t('register.선택_안_함')}>선택 안 함</option>
                 </select>
               </div>
             </div>
@@ -320,10 +320,10 @@ export default function Register() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                 required
               >
-                <option value="비활동적">비활동적 (거의 운동 안 함)</option>
-                <option value="가볍게 활동적">가볍게 활동적 (주 1-3회 운동)</option>
-                <option value="활동적">활동적 (주 3-5회 운동)</option>
-                <option value="매우 활동적">매우 활동적 (주 6-7회 운동)</option>
+                <option value={t('register.비활동적')}>비활동적 (거의 운동 안 함)</option>
+                <option value={t('register.가볍게_활동적')}>가볍게 활동적 (주 1-3회 운동)</option>
+                <option value={t('register.활동적')}>활동적 (주 3-5회 운동)</option>
+                <option value={t('register.매우_활동적')}>매우 활동적 (주 6-7회 운동)</option>
               </select>
             </div>
 
@@ -340,9 +340,9 @@ export default function Register() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                 required
               >
-                <option value="체중감량">체중감량</option>
-                <option value="체중유지">체중유지</option>
-                <option value="근육증가">근육증가</option>
+                <option value={t('register.체중감량')}>체중감량</option>
+                <option value={t('register.체중유지')}>체중유지</option>
+                <option value={t('register.근육증가')}>근육증가</option>
               </select>
             </div>
 
