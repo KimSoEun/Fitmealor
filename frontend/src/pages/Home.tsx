@@ -160,37 +160,60 @@ const Home: React.FC = () => {
     const loadProfile = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) {
-          console.log('No token found, using default profile');
-          setProfileLoaded(true);  // 토큰이 없어도 기본값으로 진행
-          return;
+
+        // Try authenticated profile first if token exists
+        if (token) {
+          try {
+            const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              setUserProfile({
+                name: data.name,
+                age: data.age,
+                gender: data.gender,
+                height: data.height_cm,
+                weight: data.weight_kg,
+                targetWeight: data.target_weight_kg,
+                activityLevel: data.activity_level,
+                healthGoal: data.health_goal
+              });
+              setProfileLoaded(true);
+              return; // Successfully loaded authenticated profile
+            }
+          } catch (error) {
+            console.log('Authenticated profile failed, falling back to demo profile');
+          }
         }
 
-        const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+        // Fallback to demo profile if no token or authentication failed
+        console.log('Loading demo profile');
+        const demoResponse = await fetch('http://localhost:8000/api/v1/auth/demo-profile', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
-        if (!response.ok) {
-          console.error('Failed to load profile');
-          setProfileLoaded(true);  // API 실패 시에도 기본값으로 진행
-          return;
+        if (demoResponse.ok) {
+          const data = await demoResponse.json();
+          setUserProfile({
+            name: data.name,
+            age: data.age,
+            gender: data.gender,
+            height: data.height_cm,
+            weight: data.weight_kg,
+            targetWeight: data.target_weight_kg,
+            activityLevel: data.activity_level,
+            healthGoal: data.health_goal
+          });
         }
-
-        const data = await response.json();
-        setUserProfile({
-          name: data.name,
-          age: data.age,
-          gender: data.gender,
-          height: data.height_cm,
-          weight: data.weight_kg,
-          targetWeight: data.target_weight_kg,
-          activityLevel: data.activity_level,
-          healthGoal: data.health_goal
-        });
         setProfileLoaded(true);
       } catch (error) {
         console.error('Failed to load profile:', error);

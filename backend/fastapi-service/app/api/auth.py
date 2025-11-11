@@ -195,3 +195,21 @@ async def update_profile(
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current user info"""
     return current_user
+
+
+@router.get("/demo-profile", response_model=UserProfile)
+async def get_demo_profile():
+    """Get demo profile for testing without authentication"""
+    # Return a demo profile object (not from database)
+    return UserProfile(
+        id=0,
+        email="demo@fitmealor.com",
+        name="김건강",
+        age=25,
+        gender="남성",
+        height_cm=175.0,
+        weight_kg=70.0,
+        target_weight_kg=65.0,
+        activity_level="활동적",
+        health_goal="근육증가"
+    )
