@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,40 +28,40 @@ export default function Register() {
     // 유효성 검사
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword ||
         !formData.age || !formData.height || !formData.weight || !formData.targetWeight) {
-      setError('모든 필드를 입력해주세요.');
+      setError(t('register.모든_필드를_입력해주세요.'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.');
+      setError(t('register.비밀번호가_일치하지_않습니다.'));
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('비밀번호는 최소 8자 이상이어야 합니다.');
+      setError(t('register.비밀번호는_최소_8자_이상이어야_합니다.'));
       return;
     }
 
     const age = parseInt(formData.age);
     if (age < 10 || age > 100) {
-      setError('나이는 10세에서 100세 사이여야 합니다.');
+      setError(t('register.나이는_10세에서_100세_사이여야_합니다.'));
       return;
     }
 
     const height = parseFloat(formData.height);
     if (height < 100 || height > 250) {
-      setError('키는 100cm에서 250cm 사이여야 합니다.');
+      setError(t('register.키는_100cm에서_250cm_사이여야_합니다.'));
       return;
     }
 
     const weight = parseFloat(formData.weight);
     if (weight < 30 || weight > 200) {
-      setError('체중은 30kg에서 200kg 사이여야 합니다.');
+      setError(t('register.체중은_30kg에서_200kg_사이여야_합니다.'));
       return;
     }
 
     if (!agreeToTerms) {
-      setError('이용약관 및 개인정보처리방침에 동의해주세요.');
+      setError(t('register.이용약관_및_개인정보처리방침에_동의해주세요.'));
       return;
     }
 
@@ -88,16 +90,16 @@ export default function Register() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.detail || '회원가입에 실패했습니다.');
+        setError(data.detail || t('register.회원가입에_실패했습니다.'));
         return;
       }
 
       // 회원가입 성공 시 로그인 페이지로 이동
-      alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+      alert(t('register.회원가입이_완료되었습니다!_로그인_페이지로_이동합니다.'));
       navigate('/login');
     } catch (error) {
       console.error('Register error:', error);
-      setError('서버와의 통신에 실패했습니다.');
+      setError(t('register.서버와의_통신에_실패했습니다.'));
     }
   };
 
@@ -116,12 +118,12 @@ export default function Register() {
           <h1 className="text-4xl font-bold text-green-600 mb-2">
             Fitmealor
           </h1>
-          <p className="text-gray-600">건강한 식단 추천 서비스</p>
+          <p className="text-gray-600">{t('register.건강한_식단_추천_서비스')}</p>
         </div>
 
         {/* 회원가입 카드 */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">회원가입</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('register.회원가입')}</h2>
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
@@ -133,7 +135,7 @@ export default function Register() {
             {/* 이름 입력 */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                이름
+                {t('register.이름')}
               </label>
               <input
                 id="name"
@@ -150,7 +152,7 @@ export default function Register() {
             {/* 이메일 입력 */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                이메일
+                {t('register.이메일')}
               </label>
               <input
                 id="email"
@@ -167,7 +169,7 @@ export default function Register() {
             {/* 비밀번호 입력 */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                비밀번호
+                {t('register.비밀번호')}
               </label>
               <input
                 id="password"
@@ -179,13 +181,13 @@ export default function Register() {
                 placeholder="••••••••"
                 required
               />
-              <p className="mt-1 text-xs text-gray-500">최소 8자 이상 입력해주세요</p>
+              <p className="mt-1 text-xs text-gray-500">{t('register.최소_8자_이상_입력해주세요')}</p>
             </div>
 
             {/* 비밀번호 확인 입력 */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                비밀번호 확인
+                {t('register.비밀번호_확인')}
               </label>
               <input
                 id="confirmPassword"
@@ -205,7 +207,7 @@ export default function Register() {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500 font-medium">건강 정보</span>
+                <span className="px-2 bg-white text-gray-500 font-medium">{t('register.건강_정보')}</span>
               </div>
             </div>
 
@@ -213,7 +215,7 @@ export default function Register() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
-                  나이
+                  {t('register.나이')}
                 </label>
                 <input
                   id="age"
@@ -230,7 +232,7 @@ export default function Register() {
               </div>
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                  성별
+                  {t('register.성별')}
                 </label>
                 <select
                   id="gender"
@@ -240,9 +242,9 @@ export default function Register() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                   required
                 >
-                  <option value={t('register.여성')}>여성</option>
-                  <option value={t('register.남성')}>남성</option>
-                  <option value={t('register.선택_안_함')}>선택 안 함</option>
+                  <option value="여성">{t('register.여성')}</option>
+                  <option value="남성">{t('register.남성')}</option>
+                  <option value="선택 안 함">{t('register.선택_안_함')}</option>
                 </select>
               </div>
             </div>
@@ -251,7 +253,7 @@ export default function Register() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-2">
-                  키 (cm)
+                  {t('register.키_(cm)')}
                 </label>
                 <input
                   id="height"
@@ -269,7 +271,7 @@ export default function Register() {
               </div>
               <div>
                 <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
-                  체중 (kg)
+                  {t('register.체중_(kg)')}
                 </label>
                 <input
                   id="weight"
@@ -290,7 +292,7 @@ export default function Register() {
             {/* 목표 체중 */}
             <div>
               <label htmlFor="targetWeight" className="block text-sm font-medium text-gray-700 mb-2">
-                목표 체중 (kg)
+                {t('register.목표_체중_(kg)')}
               </label>
               <input
                 id="targetWeight"
@@ -310,7 +312,7 @@ export default function Register() {
             {/* 활동 수준 */}
             <div>
               <label htmlFor="activityLevel" className="block text-sm font-medium text-gray-700 mb-2">
-                활동 수준
+                {t('register.활동_수준')}
               </label>
               <select
                 id="activityLevel"
@@ -320,17 +322,17 @@ export default function Register() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                 required
               >
-                <option value={t('register.비활동적')}>비활동적 (거의 운동 안 함)</option>
-                <option value={t('register.가볍게_활동적')}>가볍게 활동적 (주 1-3회 운동)</option>
-                <option value={t('register.활동적')}>활동적 (주 3-5회 운동)</option>
-                <option value={t('register.매우_활동적')}>매우 활동적 (주 6-7회 운동)</option>
+                <option value="비활동적">{t('register.비활동적_(거의_운동_안_함)')}</option>
+                <option value="가볍게 활동적">{t('register.가볍게_활동적_(주_1-3회_운동)')}</option>
+                <option value="활동적">{t('register.활동적_(주_3-5회_운동)')}</option>
+                <option value="매우 활동적">{t('register.매우_활동적_(주_6-7회_운동)')}</option>
               </select>
             </div>
 
             {/* 건강 목표 */}
             <div>
               <label htmlFor="healthGoal" className="block text-sm font-medium text-gray-700 mb-2">
-                건강 목표
+                {t('register.건강_목표')}
               </label>
               <select
                 id="healthGoal"
@@ -340,9 +342,9 @@ export default function Register() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
                 required
               >
-                <option value={t('register.체중감량')}>체중감량</option>
-                <option value={t('register.체중유지')}>체중유지</option>
-                <option value={t('register.근육증가')}>근육증가</option>
+                <option value="체중감량">{t('register.체중감량')}</option>
+                <option value="체중유지">{t('register.체중유지')}</option>
+                <option value="근육증가">{t('register.근육증가')}</option>
               </select>
             </div>
 
@@ -355,12 +357,21 @@ export default function Register() {
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mt-1"
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                <a href="#" className="text-green-600 hover:text-green-700">이용약관</a>
-                {' '}및{' '}
-                <a href="#" className="text-green-600 hover:text-green-700">개인정보처리방침</a>
-                에 동의합니다
-              </label>
+              {i18n.language === 'en' ?
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+                  {t('register.에_동의합니다')}{' '}
+                  <a href="#" className="text-green-600 hover:text-green-700">{t('register.이용약관')}</a>
+                  {' '}and{' '}
+                  <a href="#" className="text-green-600 hover:text-green-700">{t('register.개인정보처리방침')}</a>
+                </label>
+                :
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+                  <a href="#" className="text-green-600 hover:text-green-700">{t('register.이용약관')}</a>
+                  {' '}및{' '}
+                  <a href="#" className="text-green-600 hover:text-green-700">{t('register.개인정보처리방침')}</a>
+                  {t('register.에_동의합니다.')}
+                </label>
+              }
             </div>
 
             {/* 회원가입 버튼 */}
@@ -368,7 +379,7 @@ export default function Register() {
               type="submit"
               className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200 shadow-md hover:shadow-lg"
             >
-              회원가입
+              {t('register.회원가입')}
             </button>
           </form>
 
@@ -379,7 +390,7 @@ export default function Register() {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">또는</span>
+                <span className="px-2 bg-white text-gray-500">{t('register.또는')}</span>
               </div>
             </div>
 
@@ -396,9 +407,9 @@ export default function Register() {
           {/* 로그인 링크 */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              이미 계정이 있으신가요?{' '}
+              {t('register.이미_계정이_있으신가요?')}{' '}
               <Link to="/login" className="text-green-600 hover:text-green-700 font-semibold">
-                로그인
+                {t('register.로그인')}
               </Link>
             </p>
           </div>
