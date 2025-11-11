@@ -38,7 +38,7 @@ const Home: React.FC = () => {
     carbs: 0,
     fat: 0
   });
-  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
+  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]); // Store allergy keys (e.g., 'eggs', 'milk')
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [currentLang, setCurrentLang] = useState(i18n.language);
@@ -70,9 +70,53 @@ const Home: React.FC = () => {
   };
 
   const allergyKeys = Object.keys(allergyTranslations);
-  const allergyList = allergyKeys.map(key =>
-    currentLang === 'en' ? allergyTranslations[key].en : allergyTranslations[key].ko
-  );
+
+  // Get display name for an allergy key
+  const getAllergyDisplayName = (key: string): string => {
+    return currentLang === 'en' ? allergyTranslations[key].en : allergyTranslations[key].ko;
+  };
+
+  // Health goal translations
+  const healthGoalTranslations: Record<string, { ko: string; en: string }> = {
+    '체중감량': { ko: '체중감량', en: 'Weight Loss' },
+    '체중유지': { ko: '체중유지', en: 'Maintain Weight' },
+    '근육증가': { ko: '근육증가', en: 'Muscle Gain' }
+  };
+
+  // Gender translations
+  const genderTranslations: Record<string, { ko: string; en: string }> = {
+    '남성': { ko: '남성', en: 'Male' },
+    '여성': { ko: '여성', en: 'Female' }
+  };
+
+  // Activity level translations
+  const activityLevelTranslations: Record<string, { ko: string; en: string }> = {
+    '비활동적': { ko: '비활동적', en: 'Sedentary' },
+    '가볍게 활동적': { ko: '가볍게 활동적', en: 'Lightly Active' },
+    '활동적': { ko: '활동적', en: 'Active' },
+    '매우 활동적': { ko: '매우 활동적', en: 'Very Active' }
+  };
+
+  // Get translated health goal
+  const getHealthGoalDisplay = (goal: string): string => {
+    const translation = healthGoalTranslations[goal];
+    if (!translation) return goal;
+    return currentLang === 'en' ? translation.en : translation.ko;
+  };
+
+  // Get translated gender
+  const getGenderDisplay = (gender: string): string => {
+    const translation = genderTranslations[gender];
+    if (!translation) return gender;
+    return currentLang === 'en' ? translation.en : translation.ko;
+  };
+
+  // Get translated activity level
+  const getActivityLevelDisplay = (level: string): string => {
+    const translation = activityLevelTranslations[level];
+    if (!translation) return level;
+    return currentLang === 'en' ? translation.en : translation.ko;
+  };
 
   // 사용자 프로필 데이터
   const [userProfile, setUserProfile] = useState({
@@ -133,12 +177,12 @@ const Home: React.FC = () => {
     }
   };
 
-  // 알러지 선택/해제 핸들러
-  const handleAllergyToggle = (allergy: string) => {
+  // 알러지 선택/해제 핸들러 (key-based)
+  const handleAllergyToggle = (allergyKey: string) => {
     setSelectedAllergies(prev =>
-      prev.includes(allergy)
-        ? prev.filter(a => a !== allergy)
-        : [...prev, allergy]
+      prev.includes(allergyKey)
+        ? prev.filter(a => a !== allergyKey)
+        : [...prev, allergyKey]
     );
   };
 
@@ -174,6 +218,7 @@ const Home: React.FC = () => {
 
             if (response.ok) {
               const data = await response.json();
+              console.log('Loaded authenticated profile:', data);
               setUserProfile({
                 name: data.name,
                 age: data.age,
@@ -222,6 +267,35 @@ const Home: React.FC = () => {
     };
 
     loadProfile();
+
+    // Check for profile update flag and reload if needed
+    const checkProfileUpdate = () => {
+      const profileUpdated = localStorage.getItem('profileUpdated');
+      if (profileUpdated === 'true') {
+        console.log('Profile was updated, reloading...');
+        localStorage.removeItem('profileUpdated');
+        loadProfile();
+      }
+    };
+
+    // Check on mount
+    checkProfileUpdate();
+
+    // Check periodically (every second) for profile updates
+    const intervalId = setInterval(checkProfileUpdate, 1000);
+
+    // Reload profile when window gains focus (user returns to this tab/page)
+    const handleFocus = () => {
+      console.log('Window gained focus, checking for profile updates...');
+      checkProfileUpdate();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   useEffect(() => {
@@ -256,7 +330,9 @@ const Home: React.FC = () => {
           weight_kg: userProfile.weight,
           target_weight_kg: userProfile.targetWeight,
           activity_level: userProfile.activityLevel,
-          health_goal: userProfile.healthGoal
+          health_goal: userProfile.healthGoal,
+          allergies: selectedAllergies, // Add selected allergies
+          dietary_restrictions: [] // Can be extended later
         };
 
         const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
@@ -304,7 +380,7 @@ const Home: React.FC = () => {
     };
 
     fetchRecommendations();
-  }, [profileLoaded]); // userProfile 대신 profileLoaded를 의존성으로 사용
+  }, [profileLoaded, selectedAllergies]); // Re-fetch when profile loads or allergies change
 
   return (
     <div>
@@ -347,7 +423,7 @@ const Home: React.FC = () => {
         <div className="mt-4 flex gap-4">
           <div className="flex-1 bg-green-50 rounded-lg p-3">
             <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Health Goal' : '건강 목표'}</p>
-            <p className="text-base font-semibold text-green-700">{userProfile.healthGoal}</p>
+            <p className="text-base font-semibold text-green-700">{getHealthGoalDisplay(userProfile.healthGoal)}</p>
           </div>
           <div className="flex-1 bg-purple-50 rounded-lg p-3">
             <p className="text-sm text-gray-600 mb-1">{currentLang === 'en' ? 'Target Weight' : '목표 체중'}</p>
@@ -389,7 +465,7 @@ const Home: React.FC = () => {
               </p>
               <p className="text-2xl font-bold text-indigo-600">
                 {tdeeInfo.adjusted_tdee.toLocaleString()} <span className="text-xs text-gray-500">
-                  {currentLang === 'en' ? 'kcal/day' : 'kcal/일'} ({userProfile.healthGoal})
+                  {currentLang === 'en' ? 'kcal/day' : 'kcal/일'} ({getHealthGoalDisplay(userProfile.healthGoal)})
                 </span>
               </p>
             </div>
@@ -565,11 +641,12 @@ const Home: React.FC = () => {
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {allergyList.map((allergy) => {
-                    const isSelected = selectedAllergies.includes(allergy);
+                  {allergyKeys.map((allergyKey) => {
+                    const isSelected = selectedAllergies.includes(allergyKey);
+                    const displayName = getAllergyDisplayName(allergyKey);
                     return (
                       <label
-                        key={allergy}
+                        key={allergyKey}
                         className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors ${
                           isSelected
                             ? 'bg-red-50 border border-red-200'
@@ -579,11 +656,11 @@ const Home: React.FC = () => {
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => handleAllergyToggle(allergy)}
+                          onChange={() => handleAllergyToggle(allergyKey)}
                           className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                         />
                         <span className={`text-sm ${isSelected ? 'text-red-700 font-medium' : 'text-gray-700'}`}>
-                          {allergy}
+                          {displayName}
                         </span>
                       </label>
                     );

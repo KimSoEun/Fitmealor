@@ -102,6 +102,8 @@ export default function HealthProfile() {
       }
 
       setProfile(editedProfile);
+      // Set flag to trigger profile reload in Home page
+      localStorage.setItem('profileUpdated', 'true');
       alert(t('healthprofile.프로필이_저장되었습니다!'));
     } catch (error) {
       console.error('Failed to save profile:', error);

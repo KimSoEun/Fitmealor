@@ -34,6 +34,56 @@ def load_translation_cache() -> Dict[str, str]:
 translation_cache: Dict[str, str] = load_translation_cache()
 logger.info(f"Loaded {len(translation_cache)} translations from cache")
 
+# Allergen mappings - map user-selected allergens to various forms
+ALLERGEN_MAPPINGS = {
+    'eggs': ['egg', 'eggs', '계란', '달걀', '난류', '에그'],
+    'milk': ['milk', 'dairy', 'cheese', 'cream', 'butter', 'yogurt', 'whey', '우유', '유제품', '치즈', '크림', '버터', '요거트', '요구르트'],
+    'buckwheat': ['buckwheat', 'soba', '메밀', '소바'],
+    'peanuts': ['peanut', 'peanuts', '땅콩'],
+    'soybeans': ['soy', 'soybean', 'tofu', 'miso', '대두', '콩', '두부', '된장', '간장'],
+    'wheat': ['wheat', 'flour', 'bread', 'pasta', 'gluten', '밀', '밀가루', '빵', '면', '글루텐'],
+    'mackerel': ['mackerel', 'saba', '고등어', '사바'],
+    'crab': ['crab', '게'],
+    'shrimp': ['shrimp', 'prawn', '새우'],
+    'pork': ['pork', 'ham', 'bacon', '돼지', '돼지고기', '삼겹살', '베이컨', '햄'],
+    'peach': ['peach', '복숭아'],
+    'tomato': ['tomato', '토마토'],
+    'sulfites': ['sulfite', 'sulfites', '아황산'],
+    'walnuts': ['walnut', 'walnuts', '호두'],
+    'chicken': ['chicken', 'poultry', '닭', '치킨', '닭고기'],
+    'beef': ['beef', 'steak', '소고기', '쇠고기', '스테이크', '불고기'],
+    'squid': ['squid', 'calamari', '오징어', '갈라마리'],
+    'shellfish': ['shellfish', 'clam', 'mussel', 'oyster', 'scallop', '조개', '홍합', '굴', '가리비'],
+    'pine_nuts': ['pine nut', 'pine nuts', '잣'],
+    'crustaceans': ['crustacean', 'crustaceans', 'lobster', '갑각류', '랍스터'],
+    'tree_nuts': ['almond', 'cashew', 'hazelnut', 'pecan', 'pistachio', 'nut', '견과류', '아몬드', '캐슈', '헤이즐넛'],
+    'dairy': ['milk', 'dairy', 'cheese', 'cream', 'butter', 'yogurt', '유제품', '우유', '치즈']
+}
+
+def check_allergen_match(allergen_key: str, food_name: str, allergen_field: str) -> bool:
+    """
+    Check if a food contains a specific allergen
+    Uses allergen mappings to check both the allergen field and food name
+    """
+    # Get all possible forms of this allergen
+    allergen_variations = ALLERGEN_MAPPINGS.get(allergen_key, [allergen_key])
+
+    # Convert to lowercase for comparison
+    food_name_lower = food_name.lower()
+    allergen_field_lower = allergen_field.lower()
+
+    # Check each variation
+    for variation in allergen_variations:
+        variation_lower = variation.lower()
+        # Check in allergen field
+        if variation_lower in allergen_field_lower:
+            return True
+        # Check in food name (Korean food detection)
+        if variation_lower in food_name_lower:
+            return True
+
+    return False
+
 
 class RecommendationRequest(BaseModel):
     user_id: str
@@ -216,12 +266,14 @@ async def recommend_meals(request: RecommendationRequest):
 
         # Filter meals
         filtered_meals = []
+        allergen_filtered_count = 0
         for meal in all_meals:
-            # Skip if allergens match (simple check)
+            # Skip if allergens match (enhanced check with mappings)
             skip = False
             for allergy in request.allergies:
-                if allergy.lower() in meal.get("allergens", "").lower():
+                if check_allergen_match(allergy, meal["name"], meal.get("allergens", "")):
                     skip = True
+                    allergen_filtered_count += 1
                     break
 
             if skip:
@@ -280,6 +332,11 @@ async def recommend_meals(request: RecommendationRequest):
             fat_calories = fat_g * 9
             carbs_calories = target_calories - protein_calories - fat_calories
             carbs_g = carbs_calories / 4
+
+        # Log allergen filtering stats
+        if request.allergies:
+            logger.info(f"Allergen filtering: {allergen_filtered_count} meals filtered out for allergies: {request.allergies}")
+            logger.info(f"Remaining meals after allergen filter: {len(filtered_meals)}")
 
         return {
             "success": True,
