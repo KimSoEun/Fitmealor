@@ -370,7 +370,7 @@ const Home: React.FC = () => {
             return true;
           });
 
-          setRecommendations(filteredMeals.slice(0, 6)); // 상위 6개만 표시
+          setRecommendations(filteredMeals.slice(0, 12)); // 상위 12개만 표시
         }
       } catch (error) {
         console.error('Failed to fetch recommendations:', error);

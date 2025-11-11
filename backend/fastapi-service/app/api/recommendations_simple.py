@@ -264,6 +264,40 @@ async def recommend_meals(request: RecommendationRequest):
         else:  # 체중유지
             target_calories = tdee
 
+        # Calculate macro targets based on health goal (BEFORE filtering)
+        if request.health_goal == "근육증가":
+            # High protein for muscle gain
+            target_protein_g = request.weight_kg * 2.2  # 2.2g per kg
+            target_fat_g = request.weight_kg * 1.0  # 1g per kg
+            protein_calories = target_protein_g * 4
+            fat_calories = target_fat_g * 9
+            carbs_calories = target_calories - protein_calories - fat_calories
+            target_carbs_g = carbs_calories / 4
+        elif request.health_goal == "체중감량":
+            # Higher protein for weight loss
+            target_protein_g = request.weight_kg * 2.0  # 2g per kg
+            target_fat_g = request.weight_kg * 0.8  # 0.8g per kg
+            protein_calories = target_protein_g * 4
+            fat_calories = target_fat_g * 9
+            carbs_calories = target_calories - protein_calories - fat_calories
+            target_carbs_g = carbs_calories / 4
+        else:  # 체중유지
+            # Balanced macros
+            target_protein_g = request.weight_kg * 1.6  # 1.6g per kg
+            target_fat_g = request.weight_kg * 0.9  # 0.9g per kg
+            protein_calories = target_protein_g * 4
+            fat_calories = target_fat_g * 9
+            carbs_calories = target_calories - protein_calories - fat_calories
+            target_carbs_g = carbs_calories / 4
+
+        # Calculate target macro ratios
+        total_target_macros = target_protein_g + target_carbs_g + target_fat_g
+        target_protein_ratio = target_protein_g / total_target_macros if total_target_macros > 0 else 0.33
+        target_carbs_ratio = target_carbs_g / total_target_macros if total_target_macros > 0 else 0.53
+        target_fat_ratio = target_fat_g / total_target_macros if total_target_macros > 0 else 0.14
+
+        logger.info(f"Target macro ratios - Protein: {target_protein_ratio:.1%}, Carbs: {target_carbs_ratio:.1%}, Fat: {target_fat_ratio:.1%}")
+
         # Filter meals
         filtered_meals = []
         allergen_filtered_count = 0
@@ -283,18 +317,53 @@ async def recommend_meals(request: RecommendationRequest):
             if meal["calories"] > target_calories * 0.4:
                 continue
 
+            # Skip meals with extremely unbalanced macros
+            total_macros = meal["protein_g"] + meal["carbs_g"] + meal["fat_g"]
+            if total_macros > 0:
+                protein_ratio = meal["protein_g"] / total_macros
+                carbs_ratio = meal["carbs_g"] / total_macros
+                fat_ratio = meal["fat_g"] / total_macros
+
+                # Skip if any single macro is more than 95% (e.g., pure oil/sugar)
+                if protein_ratio > 0.95 or carbs_ratio > 0.95 or fat_ratio > 0.95:
+                    continue
+
+                # Skip if protein is less than 5% (except for very low calorie meals)
+                if meal["calories"] > 100 and protein_ratio < 0.05:
+                    continue
+
             # Calculate simple score based on calorie appropriateness
             calorie_per_meal_target = target_calories / 3  # Assuming 3 meals per day
             calorie_diff = abs(meal["calories"] - calorie_per_meal_target)
-            score = max(0, 100 - (calorie_diff / calorie_per_meal_target * 100))
+            calorie_score = max(0, 100 - (calorie_diff / calorie_per_meal_target * 100))
+
+            # Calculate macro similarity score based on user's target ratios (0-100)
+            macro_similarity_score = 100
+            if meal["calories"] > 100 and total_macros > 0:
+                # Calculate absolute differences from target ratios
+                protein_diff = abs(protein_ratio - target_protein_ratio)
+                carbs_diff = abs(carbs_ratio - target_carbs_ratio)
+                fat_diff = abs(fat_ratio - target_fat_ratio)
+
+                # Calculate similarity score (lower difference = higher score)
+                # Each macro can contribute up to ~33 points of penalty
+                protein_penalty = protein_diff * 150  # 0-150 penalty range
+                carbs_penalty = carbs_diff * 100      # 0-100 penalty range
+                fat_penalty = fat_diff * 150          # 0-150 penalty range
+
+                total_penalty = protein_penalty + carbs_penalty + fat_penalty
+                macro_similarity_score = max(0, 100 - total_penalty)
+
+            # Combined score (50% calorie, 50% macro similarity to user's target)
+            score = (calorie_score * 0.5) + (macro_similarity_score * 0.5)
 
             # Boost score for high protein if muscle gain
             if request.health_goal == "근육증가" and meal["protein_g"] > 20:
-                score += 10
+                score += 5
 
             # Boost score for lower calorie if weight loss
             if request.health_goal == "체중감량" and meal["calories"] < calorie_per_meal_target:
-                score += 5
+                score += 3
 
             meal["score"] = min(100, score)
             filtered_meals.append(meal)
@@ -306,32 +375,6 @@ async def recommend_meals(request: RecommendationRequest):
         # Add some randomness to avoid always showing the same meals
         if len(recommendations) > request.num_recommendations:
             recommendations = random.sample(filtered_meals[:50], min(request.num_recommendations, 50))
-
-        # Calculate macro targets based on health goal
-        if request.health_goal == "근육증가":
-            # High protein for muscle gain
-            protein_g = request.weight_kg * 2.2  # 2.2g per kg
-            fat_g = request.weight_kg * 1.0  # 1g per kg
-            protein_calories = protein_g * 4
-            fat_calories = fat_g * 9
-            carbs_calories = target_calories - protein_calories - fat_calories
-            carbs_g = carbs_calories / 4
-        elif request.health_goal == "체중감량":
-            # Higher protein for weight loss
-            protein_g = request.weight_kg * 2.0  # 2g per kg
-            fat_g = request.weight_kg * 0.8  # 0.8g per kg
-            protein_calories = protein_g * 4
-            fat_calories = fat_g * 9
-            carbs_calories = target_calories - protein_calories - fat_calories
-            carbs_g = carbs_calories / 4
-        else:  # 체중유지
-            # Balanced macros
-            protein_g = request.weight_kg * 1.6  # 1.6g per kg
-            fat_g = request.weight_kg * 0.9  # 0.9g per kg
-            protein_calories = protein_g * 4
-            fat_calories = fat_g * 9
-            carbs_calories = target_calories - protein_calories - fat_calories
-            carbs_g = carbs_calories / 4
 
         # Log allergen filtering stats
         if request.allergies:
@@ -351,9 +394,9 @@ async def recommend_meals(request: RecommendationRequest):
                 "adjusted_tdee": round(target_calories, 2),
                 "macro_targets": {
                     "calories": round(target_calories, 2),
-                    "protein_g": round(protein_g, 1),
-                    "carbs_g": round(carbs_g, 1),
-                    "fat_g": round(fat_g, 1)
+                    "protein_g": round(target_protein_g, 1),
+                    "carbs_g": round(target_carbs_g, 1),
+                    "fat_g": round(target_fat_g, 1)
                 }
             },
             "recommendations": recommendations
