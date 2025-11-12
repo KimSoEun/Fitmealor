@@ -343,6 +343,28 @@ const Home: React.FC = () => {
     setUserInput('');
   };
 
+  // Reset chat filters on page load (not on navigation)
+  useEffect(() => {
+    // Clear filters when component first mounts (page refresh)
+    const hasLoadedBefore = sessionStorage.getItem('homePageLoaded');
+    if (!hasLoadedBefore) {
+      // First time loading this page in this session
+      setAppliedFilters(null);
+      setChatMessages([]);
+      sessionStorage.setItem('homePageLoaded', 'true');
+    }
+
+    // Clear the flag when the page is about to unload (refresh or close)
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('homePageLoaded');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
