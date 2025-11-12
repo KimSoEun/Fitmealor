@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.core.config import settings
-from app.api import meals, ocr, health, auth
+from app.api import meals, ocr, health, auth, chatbot
 from app.api import recommendations_simple as recommendations
 from app.db.database import init_db
 
@@ -266,6 +266,7 @@ app.include_router(meals.router, prefix="/api/v1/meals", tags=["Meals"])
 app.include_router(ocr.router, prefix="/api/v1/ocr", tags=["OCR"])
 app.include_router(recommendations.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["Health"])
+app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["Chatbot"])
 
 
 # Global exception handler

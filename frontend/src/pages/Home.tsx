@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -26,10 +26,25 @@ interface TDEEInfo {
   };
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface MealFilters {
+  maxCalories?: number;
+  minProtein?: number;
+  maxCarbs?: number;
+  maxFat?: number;
+  excludeIngredients?: string[];
+  includeIngredients?: string[];
+  preferHighProtein?: boolean;
+  preferLowCarb?: boolean;
+}
+
 const Home: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [recommendations, setRecommendations] = useState<Meal[]>([]);
-  const [tdeeInfo, setTdeeInfo] = useState<TDEEInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMeals, setSelectedMeals] = useState<Meal[]>([]);
   const [currentNutrition, setCurrentNutrition] = useState({
@@ -42,6 +57,13 @@ const Home: React.FC = () => {
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [currentLang, setCurrentLang] = useState(i18n.language);
+
+  // Chatbot states
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<MealFilters | null>(null);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
 
   // 22종 알러지 목록 (Language-aware)
   const allergyTranslations: Record<string, { ko: string; en: string }> = {
@@ -137,6 +159,66 @@ const Home: React.FC = () => {
 
   const bmi = calculateBMI(userProfile.weight, userProfile.height);
 
+  // TDEE 계산 (useMemo로 즉시 계산)
+  const tdeeInfo = useMemo((): TDEEInfo => {
+    // 1. BMR 계산 (Mifflin-St Jeor 공식)
+    const isMale = userProfile.gender === '남성' || userProfile.gender === 'Male';
+    const bmr = isMale
+      ? (10 * userProfile.weight) + (6.25 * userProfile.height) - (5 * userProfile.age) + 5
+      : (10 * userProfile.weight) + (6.25 * userProfile.height) - (5 * userProfile.age) - 161;
+
+    // 2. TDEE 계산 (활동 수준 계수 적용)
+    const activityMultipliers: Record<string, number> = {
+      '비활동적': 1.2,
+      'Sedentary': 1.2,
+      '가볍게 활동적': 1.375,
+      'Lightly Active': 1.375,
+      '활동적': 1.55,
+      'Active': 1.55,
+      '매우 활동적': 1.725,
+      'Very Active': 1.725
+    };
+    const tdee = bmr * (activityMultipliers[userProfile.activityLevel] || 1.55);
+
+    // 3. Adjusted TDEE (목표에 따른 조정)
+    const goalMultipliers: Record<string, number> = {
+      '체중감량': 0.8,
+      'Weight Loss': 0.8,
+      '체중유지': 1.0,
+      'Maintain Weight': 1.0,
+      '근육증가': 1.1,
+      'Muscle Gain': 1.1
+    };
+    const adjusted_tdee = tdee * (goalMultipliers[userProfile.healthGoal] || 1.0);
+
+    // 4. 영양소 목표 계산
+    const macroRatios: Record<string, { protein: number; carbs: number; fat: number }> = {
+      '체중감량': { protein: 0.40, carbs: 0.35, fat: 0.25 },
+      'Weight Loss': { protein: 0.40, carbs: 0.35, fat: 0.25 },
+      '체중유지': { protein: 0.25, carbs: 0.50, fat: 0.25 },
+      'Maintain Weight': { protein: 0.25, carbs: 0.50, fat: 0.25 },
+      '근육증가': { protein: 0.30, carbs: 0.50, fat: 0.20 },
+      'Muscle Gain': { protein: 0.30, carbs: 0.50, fat: 0.20 }
+    };
+    const ratio = macroRatios[userProfile.healthGoal] || { protein: 0.25, carbs: 0.50, fat: 0.25 };
+
+    const protein_g = (adjusted_tdee * ratio.protein) / 4; // 단백질 1g = 4kcal
+    const carbs_g = (adjusted_tdee * ratio.carbs) / 4;     // 탄수화물 1g = 4kcal
+    const fat_g = (adjusted_tdee * ratio.fat) / 9;         // 지방 1g = 9kcal
+
+    return {
+      bmr: Math.round(bmr),
+      tdee: Math.round(tdee),
+      adjusted_tdee: Math.round(adjusted_tdee),
+      macro_targets: {
+        protein_g: Math.round(protein_g),
+        carbs_g: Math.round(carbs_g),
+        fat_g: Math.round(fat_g),
+        calories: Math.round(adjusted_tdee)
+      }
+    };
+  }, [userProfile]);
+
   const getDisplayName = (meal: Meal): string => {
     if (currentLang === 'en') {
       // English: Use translated English name with underscores removed
@@ -187,6 +269,79 @@ const Home: React.FC = () => {
     );
   };
 
+  // Chatbot handler - Process user input and extract filters
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userInput.trim() || isProcessing) return;
+
+    const userMessage = userInput.trim();
+    setUserInput('');
+    setIsProcessing(true);
+
+    // Add user message to chat
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+
+    try {
+      console.log('=== Chat Request Started ===');
+      console.log('User message:', userMessage);
+      console.log('Current language:', currentLang);
+
+      // Call backend chatbot API
+      const response = await fetch('http://localhost:8000/api/v1/chatbot/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          language: currentLang
+        }),
+      });
+
+      console.log('Backend API response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        console.error('Backend API error response:', errorData);
+        throw new Error(errorData.detail || `API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Backend API response data:', data);
+
+      // Add assistant message to chat
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+
+      // Apply filters if present
+      if (data.filters) {
+        console.log('Applying filters:', data.filters);
+        setAppliedFilters(data.filters);
+      }
+
+      console.log('=== Chat Request Completed ===');
+
+    } catch (error) {
+      console.error('=== Chat Error ===');
+      console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+
+      const errorMessage = currentLang === 'en'
+        ? `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        : `죄송합니다. 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`;
+      setChatMessages(prev => [...prev, { role: 'assistant', content: errorMessage }]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Clear chat and filters
+  const handleClearChat = () => {
+    setChatMessages([]);
+    setAppliedFilters(null);
+    setUserInput('');
+  };
+
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -205,10 +360,12 @@ const Home: React.FC = () => {
     const loadProfile = async () => {
       try {
         const token = localStorage.getItem('token');
+        console.log('Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'null');
 
         // Try authenticated profile first if token exists
         if (token) {
           try {
+            console.log('Attempting authenticated profile request');
             const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
               method: 'GET',
               headers: {
@@ -216,6 +373,8 @@ const Home: React.FC = () => {
                 'Content-Type': 'application/json',
               },
             });
+
+            console.log('Profile response status:', response.status);
 
             if (response.ok) {
               const data = await response.json();
@@ -232,10 +391,17 @@ const Home: React.FC = () => {
               });
               setProfileLoaded(true);
               return; // Successfully loaded authenticated profile
+            } else {
+              console.error('Profile request failed with status:', response.status);
+              const errorData = await response.json().catch(() => ({}));
+              console.error('Error details:', errorData);
             }
           } catch (error) {
-            console.log('Authenticated profile failed, falling back to demo profile');
+            console.error('Authenticated profile error:', error);
+            console.log('Falling back to demo profile');
           }
+        } else {
+          console.log('No token found, using demo profile');
         }
 
         // Fallback to demo profile if no token or authentication failed
@@ -346,11 +512,9 @@ const Home: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          // TDEE 정보 저장
-          setTdeeInfo(data.tdee_info);
           // 커피, 영양제, 건강기능식품, 음료 등 식사가 아닌 항목 필터링
           const excludedCategories = ['커피', '영양제', '건강기능식품', '음료', '차/음료', '보충제', '비타민'];
-          const filteredMeals = data.recommendations.filter((meal: Meal & {category: string}) => {
+          let filteredMeals = data.recommendations.filter((meal: Meal & {category: string}) => {
             const category = meal.category.toLowerCase();
             const name = meal.name.toLowerCase();
 
@@ -371,6 +535,61 @@ const Home: React.FC = () => {
             return true;
           });
 
+          // Apply chatbot filters if any
+          if (appliedFilters) {
+            filteredMeals = filteredMeals.filter((meal: Meal) => {
+              // Max calories filter
+              if (appliedFilters.maxCalories && meal.calories > appliedFilters.maxCalories) {
+                return false;
+              }
+
+              // Min protein filter
+              if (appliedFilters.minProtein && meal.protein_g < appliedFilters.minProtein) {
+                return false;
+              }
+
+              // Max carbs filter
+              if (appliedFilters.maxCarbs && meal.carbs_g > appliedFilters.maxCarbs) {
+                return false;
+              }
+
+              // Max fat filter
+              if (appliedFilters.maxFat && meal.fat_g > appliedFilters.maxFat) {
+                return false;
+              }
+
+              // Exclude ingredients filter
+              if (appliedFilters.excludeIngredients && appliedFilters.excludeIngredients.length > 0) {
+                const mealName = meal.name.toLowerCase();
+                for (const ingredient of appliedFilters.excludeIngredients) {
+                  if (mealName.includes(ingredient.toLowerCase())) {
+                    return false;
+                  }
+                }
+              }
+
+              // Include ingredients filter (at least one must match)
+              if (appliedFilters.includeIngredients && appliedFilters.includeIngredients.length > 0) {
+                const mealName = meal.name.toLowerCase();
+                const hasMatch = appliedFilters.includeIngredients.some(ingredient =>
+                  mealName.includes(ingredient.toLowerCase())
+                );
+                if (!hasMatch) {
+                  return false;
+                }
+              }
+
+              return true;
+            });
+
+            // Sort by preferences
+            if (appliedFilters.preferHighProtein) {
+              filteredMeals.sort((a, b) => b.protein_g - a.protein_g);
+            } else if (appliedFilters.preferLowCarb) {
+              filteredMeals.sort((a, b) => a.carbs_g - b.carbs_g);
+            }
+          }
+
           setRecommendations(filteredMeals.slice(0, 12)); // 상위 12개만 표시
         }
       } catch (error) {
@@ -381,7 +600,7 @@ const Home: React.FC = () => {
     };
 
     fetchRecommendations();
-  }, [profileLoaded, selectedAllergies]); // Re-fetch when profile loads or allergies change
+  }, [profileLoaded, selectedAllergies, appliedFilters]); // Re-fetch when profile loads, allergies change, or filters are applied
 
   return (
     <div>
@@ -433,9 +652,138 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* TDEE 정보 Section */}
-      {tdeeInfo && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-8">
+      {/* AI Chatbot Section */}
+      <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-lg shadow-md p-6 mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {currentLang === 'en' ? '🤖 AI Meal Assistant' : '🤖 AI 식단 도우미'}
+          </h2>
+          {chatMessages.length > 0 && (
+            <button
+              onClick={handleClearChat}
+              className="text-sm text-red-600 hover:text-red-700 font-medium"
+            >
+              {currentLang === 'en' ? 'Clear Chat' : '대화 초기화'}
+            </button>
+          )}
+        </div>
+
+        <p className="text-gray-600 text-sm mb-4">
+          {currentLang === 'en'
+            ? 'Tell me about your condition or preferences, and I\'ll filter meal recommendations for you!'
+            : '오늘의 컨디션이나 선호하는 음식을 말씀해주세요. 맞춤 식단을 추천해드릴게요!'}
+        </p>
+
+        {/* Chat messages display */}
+        {chatMessages.length > 0 && (
+          <div className="bg-white rounded-lg p-4 mb-4 max-h-64 overflow-y-auto space-y-3">
+            {chatMessages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    message.role === 'user'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-100 text-gray-900'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                </div>
+              </div>
+            ))}
+            {isProcessing && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 text-gray-900 rounded-lg px-4 py-2">
+                  <p className="text-sm">
+                    {currentLang === 'en' ? 'Thinking...' : '생각하는 중...'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Applied filters display */}
+        {appliedFilters && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <p className="text-sm font-semibold text-blue-900 mb-2">
+              {currentLang === 'en' ? '✓ Active Filters:' : '✓ 적용된 필터:'}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {appliedFilters.maxCalories && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? `Max Calories: ${appliedFilters.maxCalories}` : `최대 칼로리: ${appliedFilters.maxCalories}`}
+                </span>
+              )}
+              {appliedFilters.minProtein && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? `Min Protein: ${appliedFilters.minProtein}g` : `최소 단백질: ${appliedFilters.minProtein}g`}
+                </span>
+              )}
+              {appliedFilters.maxCarbs && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? `Max Carbs: ${appliedFilters.maxCarbs}g` : `최대 탄수화물: ${appliedFilters.maxCarbs}g`}
+                </span>
+              )}
+              {appliedFilters.maxFat && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? `Max Fat: ${appliedFilters.maxFat}g` : `최대 지방: ${appliedFilters.maxFat}g`}
+                </span>
+              )}
+              {appliedFilters.preferHighProtein && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? 'High Protein Priority' : '고단백 우선'}
+                </span>
+              )}
+              {appliedFilters.preferLowCarb && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? 'Low Carb Priority' : '저탄수화물 우선'}
+                </span>
+              )}
+              {appliedFilters.excludeIngredients && appliedFilters.excludeIngredients.length > 0 && (
+                <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? `Exclude: ${appliedFilters.excludeIngredients.join(', ')}` : `제외: ${appliedFilters.excludeIngredients.join(', ')}`}
+                </span>
+              )}
+              {appliedFilters.includeIngredients && appliedFilters.includeIngredients.length > 0 && (
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                  {currentLang === 'en' ? `Include: ${appliedFilters.includeIngredients.join(', ')}` : `포함: ${appliedFilters.includeIngredients.join(', ')}`}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Chat input */}
+        <form onSubmit={handleChatSubmit} className="flex gap-2">
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder={
+              currentLang === 'en'
+                ? 'e.g., "I want high protein meals today"'
+                : '예: "오늘은 단백질이 많은 음식을 먹고 싶어요"'
+            }
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+            disabled={isProcessing}
+          />
+          <button
+            type="submit"
+            disabled={isProcessing || !userInput.trim()}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {isProcessing
+              ? (currentLang === 'en' ? '...' : '...')
+              : (currentLang === 'en' ? 'Send' : '전송')}
+          </button>
+        </form>
+      </div>
+
+      {/* TDEE 정보 Section  */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             {currentLang === 'en' ? 'My Calorie and Nutrition Goals' : '나의 칼로리 및 영양소 목표'}
           </h2>
@@ -584,7 +932,6 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
 
       {/* 추천 식단 Section */}
       <div>
