@@ -212,7 +212,7 @@ ALLERGEN_MAPPINGS = {
     'shellfish': ['shellfish', 'clam', 'mussel', 'oyster', 'scallop', '조개', '홍합', '굴', '가리비'],
     'pine_nuts': ['pine nut', 'pine nuts', '잣'],
     'crustaceans': ['crustacean', 'crustaceans', 'lobster', '갑각류', '랍스터'],
-    'tree_nuts': ['almond', 'cashew', 'hazelnut', 'pecan', 'pistachio', 'peanut', 'peanuts', 'chickpea', 'garbanzo', 'nut', '견과류', '아몬드', '캐슈', '헤이즐넛', '땅콩', '병아리콩'],
+    'tree_nuts': ['almond', 'cashew', 'hazelnut', 'pecan', 'pistachio', 'walnut', 'macadamia', 'brazil nut', 'nut', '견과류', '아몬드', '캐슈', '헤이즐넛', '마카다미아'],
     'dairy': ['milk', 'dairy', 'cheese', 'cream', 'butter', 'yogurt', '유제품', '우유', '치즈']
 }
 
