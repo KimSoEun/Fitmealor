@@ -50,6 +50,12 @@ def save_translation_cache():
     except Exception as e:
         logger.error(f"Failed to save translation cache: {e}")
 
+def is_korean(text: str) -> bool:
+    """Check if text contains Korean characters"""
+    import re
+    # Check if text contains any Korean characters (가-힣)
+    return bool(re.search(r'[가-힣]', text))
+
 def translate_korean_to_english(korean_name: str) -> str:
     """Translate Korean meal name to English using OpenAI"""
     # Check cache first
@@ -89,16 +95,98 @@ def translate_korean_to_english(korean_name: str) -> str:
         logger.error(f"Error translating '{korean_name}': {e}")
         return korean_name  # Fallback to Korean name
 
+def translate_english_to_korean(english_name: str) -> str:
+    """Translate English meal name to Korean using OpenAI"""
+    # Check cache first
+    if english_name in translation_cache:
+        cached_korean = translation_cache[english_name]
+        # Verify cached translation is actually Korean
+        if is_korean(cached_korean):
+            return cached_korean
+        else:
+            logger.warning(f"Cached translation for '{english_name}' is not Korean: '{cached_korean}'. Re-translating...")
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are an expert at creating natural Korean dish names. Your translations must sound natural and appetizing to Korean speakers.
+
+CRITICAL RULES - You MUST follow these:
+1. NEVER translate word-by-word literally
+2. Use proper Korean food terminology: "덮밥" (NOT "밥그릇"), "볶음" (NOT "볶은것"), "구이" (NOT "구운것")
+3. Make it sound like a real Korean menu item
+4. Keep it concise (3-5 words maximum)
+5. ONLY return the Korean translation, nothing else
+
+Translation patterns:
+- "Rice Bowl" → "덮밥" (NEVER "밥그릇" or "밥 그릇")
+- "Stir-fry" → "볶음"
+- "Grilled" → "구이" or omit if redundant
+- "Veggie/Vegetable" → "야채" or specific vegetable name
+- "Salad" → "샐러드"
+
+EXAMPLES - Study these carefully:
+Input: "Veggie Spinach Rice Bowl"
+CORRECT: "시금치 야채 덮밥"
+WRONG: "채소 시금치 밥그릇" ❌
+
+Input: "Grilled Chicken Salad"
+CORRECT: "닭가슴살 샐러드"
+WRONG: "구운 닭 샐러드" ❌
+
+Input: "Spicy Tuna Roll"
+CORRECT: "매운 참치 롤" or "참치 매운 롤"
+WRONG: "매운 참치 말이" ❌
+
+Input: "Beef Stir-fry"
+CORRECT: "소고기 볶음"
+WRONG: "쇠고기 볶은 것" ❌"""
+                },
+                {
+                    "role": "user",
+                    "content": f"{english_name}"
+                }
+            ],
+            temperature=0.1,
+            max_tokens=50
+        )
+
+        korean_name = response.choices[0].message.content.strip()
+        logger.info(f"Translated '{english_name}' to '{korean_name}'")
+
+        # Add to both caches
+        translation_cache[english_name] = korean_name
+        reverse_translation_cache[korean_name] = english_name
+
+        # Save to file
+        save_translation_cache()
+
+        return korean_name
+
+    except Exception as e:
+        logger.error(f"Error translating '{english_name}': {e}")
+        return english_name  # Fallback to English name
+
 
 def translate_recommendations(meals: List[dict]) -> List[dict]:
     """Translate only the recommended meals (not all meals in database)"""
     for meal in meals:
-        # Only translate if name_en is still in Korean (not already translated)
-        if meal["name_en"] == meal["name"]:  # name_en is same as Korean name
+        # Case 1: Korean meal needs English translation
+        if meal["name_en"] == meal["name"] and is_korean(meal["name"]):
             korean_name = meal["name"]
-            # Translate using OpenAI if not in cache
+            # Translate Korean to English
             english_name = translate_korean_to_english(korean_name)
             meal["name_en"] = english_name
+
+        # Case 2: English meal needs Korean translation
+        if meal["name_kr"] == meal["name"] or not is_korean(meal["name_kr"]):
+            english_name = meal["name_en"] if meal["name_en"] else meal["name"]
+            # Translate English to Korean (will check cache and verify it's actual Korean)
+            korean_name = translate_english_to_korean(english_name)
+            meal["name_kr"] = korean_name
 
     return meals
 
@@ -266,7 +354,8 @@ def load_meals_from_csv():
                         if ratio < 0.5 or ratio > 2.0:  # Allow 50-200% range
                             continue
 
-                    # Get Korean translation from cache if available
+                    # Get Korean translation from cache only during load (don't translate all 218 meals)
+                    # Translation will happen later for recommended meals only
                     korean_name = translation_cache.get(english_name, english_name)
 
                     meal = {

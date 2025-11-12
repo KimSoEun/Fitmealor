@@ -149,8 +149,9 @@ const Recommendations: React.FC = () => {
       const englishName = meal.name_en || meal.name;
       return englishName.replace(/_/g, ' ');
     } else {
-      // Korean: Use original name with underscores removed
-      return meal.name.replace(/_/g, ' ');
+      // Korean: Use Korean translation if available, otherwise use original name
+      const koreanName = meal.name_kr || meal.name;
+      return koreanName.replace(/_/g, ' ');
     }
   };
 
