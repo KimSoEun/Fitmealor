@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface BMICategory {
@@ -57,7 +57,6 @@ export default function HealthProfile() {
     healthGoal: '근육증가'
   });
 
-  const [tdeeInfo, setTdeeInfo] = useState<TDEEInfo | null>(null);
   const [editedProfile, setEditedProfile] = useState(profile);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -66,6 +65,66 @@ export default function HealthProfile() {
   const bmi = calculateBMI(profile.weight, profile.height);
   const bmiCategory = getBMICategory(bmi);
   const bmiPosition = getBMIPosition(bmi);
+
+  // TDEE 계산 (useMemo로 즉시 계산)
+  const tdeeInfo = useMemo((): TDEEInfo => {
+    // 1. BMR 계산 (Mifflin-St Jeor 공식)
+    const isMale = profile.gender === '남성' || profile.gender === 'Male';
+    const bmr = isMale
+      ? (10 * profile.weight) + (6.25 * profile.height) - (5 * profile.age) + 5
+      : (10 * profile.weight) + (6.25 * profile.height) - (5 * profile.age) - 161;
+
+    // 2. TDEE 계산 (활동 수준 계수 적용)
+    const activityMultipliers: Record<string, number> = {
+      '비활동적': 1.2,
+      'Sedentary': 1.2,
+      '가볍게 활동적': 1.375,
+      'Lightly Active': 1.375,
+      '활동적': 1.55,
+      'Active': 1.55,
+      '매우 활동적': 1.725,
+      'Very Active': 1.725
+    };
+    const tdee = bmr * (activityMultipliers[profile.activityLevel] || 1.55);
+
+    // 3. Adjusted TDEE (목표에 따른 조정)
+    const goalMultipliers: Record<string, number> = {
+      '체중감량': 0.8,
+      'Weight Loss': 0.8,
+      '체중유지': 1.0,
+      'Maintain Weight': 1.0,
+      '근육증가': 1.1,
+      'Muscle Gain': 1.1
+    };
+    const adjusted_tdee = tdee * (goalMultipliers[profile.healthGoal] || 1.0);
+
+    // 4. 영양소 목표 계산
+    const macroRatios: Record<string, { protein: number; carbs: number; fat: number }> = {
+      '체중감량': { protein: 0.40, carbs: 0.35, fat: 0.25 },
+      'Weight Loss': { protein: 0.40, carbs: 0.35, fat: 0.25 },
+      '체중유지': { protein: 0.25, carbs: 0.50, fat: 0.25 },
+      'Maintain Weight': { protein: 0.25, carbs: 0.50, fat: 0.25 },
+      '근육증가': { protein: 0.30, carbs: 0.50, fat: 0.20 },
+      'Muscle Gain': { protein: 0.30, carbs: 0.50, fat: 0.20 }
+    };
+    const ratio = macroRatios[profile.healthGoal] || { protein: 0.25, carbs: 0.50, fat: 0.25 };
+
+    const protein_g = (adjusted_tdee * ratio.protein) / 4; // 단백질 1g = 4kcal
+    const carbs_g = (adjusted_tdee * ratio.carbs) / 4;     // 탄수화물 1g = 4kcal
+    const fat_g = (adjusted_tdee * ratio.fat) / 9;         // 지방 1g = 9kcal
+
+    return {
+      bmr: Math.round(bmr),
+      tdee: Math.round(tdee),
+      adjusted_tdee: Math.round(adjusted_tdee),
+      macro_targets: {
+        protein_g: Math.round(protein_g),
+        carbs_g: Math.round(carbs_g),
+        fat_g: Math.round(fat_g),
+        calories: Math.round(adjusted_tdee)
+      }
+    };
+  }, [profile]);
 
   const handleCancel = () => {
     setEditedProfile(profile);
@@ -165,40 +224,6 @@ export default function HealthProfile() {
 
     loadProfile();
   }, []);
-
-  useEffect(() => {
-    const fetchTDEE = async () => {
-      try {
-        const profileData = {
-          user_id: 'demo_user',
-          age: profile.age,
-          gender: profile.gender,
-          height_cm: profile.height,
-          weight_kg: profile.weight,
-          target_weight_kg: profile.targetWeight,
-          activity_level: profile.activityLevel,
-          health_goal: profile.healthGoal
-        };
-
-        const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(profileData)
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setTdeeInfo(data.tdee_info);
-        }
-      } catch (error) {
-        console.error('Failed to fetch TDEE info:', error);
-      }
-    };
-
-    fetchTDEE();
-  }, [profile]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
