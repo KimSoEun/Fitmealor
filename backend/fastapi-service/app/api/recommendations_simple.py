@@ -196,7 +196,7 @@ ALLERGEN_MAPPINGS = {
     'milk': ['milk', 'dairy', 'cheese', 'cream', 'butter', 'yogurt', 'whey', '우유', '유제품', '치즈', '크림', '버터', '요거트', '요구르트'],
     'buckwheat': ['buckwheat', 'soba', '메밀', '소바'],
     'peanuts': ['peanut', 'peanuts', '땅콩'],
-    'soybeans': ['soy', 'soybean', 'tofu', 'miso', '대두', '콩', '두부', '된장', '간장'],
+    'soybeans': ['soy', 'soybean', 'tofu', 'miso', 'chickpea', 'garbanzo', '대두', '콩', '두부', '된장', '간장', '병아리콩'],
     'wheat': ['wheat', 'flour', 'bread', 'pasta', 'gluten', '밀', '밀가루', '빵', '면', '글루텐'],
     'mackerel': ['mackerel', 'saba', '고등어', '사바'],
     'crab': ['crab', '게'],
@@ -212,7 +212,7 @@ ALLERGEN_MAPPINGS = {
     'shellfish': ['shellfish', 'clam', 'mussel', 'oyster', 'scallop', '조개', '홍합', '굴', '가리비'],
     'pine_nuts': ['pine nut', 'pine nuts', '잣'],
     'crustaceans': ['crustacean', 'crustaceans', 'lobster', '갑각류', '랍스터'],
-    'tree_nuts': ['almond', 'cashew', 'hazelnut', 'pecan', 'pistachio', 'nut', '견과류', '아몬드', '캐슈', '헤이즐넛'],
+    'tree_nuts': ['almond', 'cashew', 'hazelnut', 'pecan', 'pistachio', 'peanut', 'peanuts', 'chickpea', 'garbanzo', 'nut', '견과류', '아몬드', '캐슈', '헤이즐넛', '땅콩', '병아리콩'],
     'dairy': ['milk', 'dairy', 'cheese', 'cream', 'butter', 'yogurt', '유제품', '우유', '치즈']
 }
 
