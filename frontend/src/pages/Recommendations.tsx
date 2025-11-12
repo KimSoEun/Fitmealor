@@ -17,19 +17,86 @@ const Recommendations: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [recommendations, setRecommendations] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState({
+    age: 25,
+    gender: '남성',
+    height: 175.0,
+    weight: 70.0,
+    targetWeight: 65.0,
+    activityLevel: '활동적',
+    healthGoal: '근육증가'
+  });
+
+  // Load user profile from API
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+
+        if (token) {
+          try {
+            const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              setUserProfile({
+                age: data.age,
+                gender: data.gender,
+                height: data.height_cm,
+                weight: data.weight_kg,
+                targetWeight: data.target_weight_kg,
+                activityLevel: data.activity_level,
+                healthGoal: data.health_goal
+              });
+              return;
+            }
+          } catch (error) {
+            console.log('Failed to load authenticated profile, using demo');
+          }
+        }
+
+        // Fallback to demo profile
+        const demoResponse = await fetch('http://localhost:8000/api/v1/auth/demo-profile');
+        if (demoResponse.ok) {
+          const data = await demoResponse.json();
+          setUserProfile({
+            age: data.age,
+            gender: data.gender,
+            height: data.height_cm,
+            weight: data.weight_kg,
+            targetWeight: data.target_weight_kg,
+            activityLevel: data.activity_level,
+            healthGoal: data.health_goal
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
         const profileData = {
           user_id: 'demo_user',
-          age: 25,
-          gender: '남성',
-          height_cm: 175.0,
-          weight_kg: 70.0,
-          target_weight_kg: 65.0,
-          activity_level: '활동적',
-          health_goal: '근육증가'
+          age: userProfile.age,
+          gender: userProfile.gender,
+          height_cm: userProfile.height,
+          weight_kg: userProfile.weight,
+          target_weight_kg: userProfile.targetWeight,
+          activity_level: userProfile.activityLevel,
+          health_goal: userProfile.healthGoal,
+          allergies: [],
+          dietary_restrictions: []
         };
 
         const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
@@ -74,13 +141,16 @@ const Recommendations: React.FC = () => {
     };
 
     fetchRecommendations();
-  }, []);
+  }, [userProfile]); // Re-fetch when profile changes
 
   const getDisplayName = (meal: Meal): string => {
     if (i18n.language === 'en') {
-      return meal.name_en || meal.name;
+      // English: Use translated English name with underscores removed
+      const englishName = meal.name_en || meal.name;
+      return englishName.replace(/_/g, ' ');
     } else {
-      return meal.name_kr || meal.name;
+      // Korean: Use original name with underscores removed
+      return meal.name.replace(/_/g, ' ');
     }
   };
 

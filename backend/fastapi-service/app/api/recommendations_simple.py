@@ -10,10 +10,14 @@ import csv
 import os
 import random
 import json
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# OpenAI client
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Translation cache file path
 TRANSLATION_CACHE_FILE = "/Users/goorm/Fitmealor/backend/data/meal_name_translations.json"
@@ -30,9 +34,73 @@ def load_translation_cache() -> Dict[str, str]:
             return {}
     return {}
 
-# Translation cache
+# Translation cache (English -> Korean)
 translation_cache: Dict[str, str] = load_translation_cache()
 logger.info(f"Loaded {len(translation_cache)} translations from cache")
+
+# Create reverse cache (Korean -> English)
+reverse_translation_cache: Dict[str, str] = {v: k for k, v in translation_cache.items()}
+
+def save_translation_cache():
+    """Save translation cache to JSON file"""
+    try:
+        with open(TRANSLATION_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(translation_cache, f, ensure_ascii=False, indent=2)
+        logger.info(f"Saved {len(translation_cache)} translations to cache")
+    except Exception as e:
+        logger.error(f"Failed to save translation cache: {e}")
+
+def translate_korean_to_english(korean_name: str) -> str:
+    """Translate Korean meal name to English using OpenAI"""
+    # Check cache first
+    if korean_name in reverse_translation_cache:
+        return reverse_translation_cache[korean_name]
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a professional translator. Translate Korean food dish names to English. Return ONLY the English translation, nothing else. Keep special characters and formatting (parentheses, etc)."
+                },
+                {
+                    "role": "user",
+                    "content": f"Translate this Korean dish name to English: {korean_name}"
+                }
+            ],
+            temperature=0.3,
+            max_tokens=100
+        )
+
+        english_name = response.choices[0].message.content.strip()
+        logger.info(f"Translated '{korean_name}' to '{english_name}'")
+
+        # Add to both caches
+        translation_cache[english_name] = korean_name
+        reverse_translation_cache[korean_name] = english_name
+
+        # Save to file
+        save_translation_cache()
+
+        return english_name
+
+    except Exception as e:
+        logger.error(f"Error translating '{korean_name}': {e}")
+        return korean_name  # Fallback to Korean name
+
+
+def translate_recommendations(meals: List[dict]) -> List[dict]:
+    """Translate only the recommended meals (not all meals in database)"""
+    for meal in meals:
+        # Only translate if name_en is still in Korean (not already translated)
+        if meal["name_en"] == meal["name"]:  # name_en is same as Korean name
+            korean_name = meal["name"]
+            # Translate using OpenAI if not in cache
+            english_name = translate_korean_to_english(korean_name)
+            meal["name_en"] = english_name
+
+    return meals
 
 # Allergen mappings - map user-selected allergens to various forms
 ALLERGEN_MAPPINGS = {
@@ -134,9 +202,12 @@ def load_meals_from_csv():
                     pd.isna(row["지방(g)"])):
                     continue
 
+                # Get English translation from cache only (don't translate during load)
+                english_name = reverse_translation_cache.get(korean_name, korean_name)
+
                 meal = {
                     "name": korean_name,
-                    "name_en": korean_name,  # Korean meals don't have English translation
+                    "name_en": english_name,  # Use English translation
                     "name_kr": korean_name,
                     "calories": float(row["에너지(kcal)"]),
                     "protein_g": float(row["단백질(g)"]),
@@ -375,6 +446,9 @@ async def recommend_meals(request: RecommendationRequest):
         # Add some randomness to avoid always showing the same meals
         if len(recommendations) > request.num_recommendations:
             recommendations = random.sample(filtered_meals[:50], min(request.num_recommendations, 50))
+
+        # Translate only the recommended meals (not all 5723 meals!)
+        recommendations = translate_recommendations(recommendations)
 
         # Log allergen filtering stats
         if request.allergies:

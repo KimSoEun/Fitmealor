@@ -138,13 +138,14 @@ const Home: React.FC = () => {
   const bmi = calculateBMI(userProfile.weight, userProfile.height);
 
   const getDisplayName = (meal: Meal): string => {
-    const displayName = currentLang === 'en'
-      ? (meal.name_en || meal.name)
-      : (meal.name_kr || meal.name);
-
-    console.log(`getDisplayName: currentLang=${currentLang}, name=${meal.name}, name_en=${meal.name_en}, name_kr=${meal.name_kr}, returning=${displayName}`);
-
-    return displayName;
+    if (currentLang === 'en') {
+      // English: Use translated English name with underscores removed
+      const englishName = meal.name_en || meal.name;
+      return englishName.replace(/_/g, ' ');
+    } else {
+      // Korean: Use original name with underscores removed
+      return meal.name.replace(/_/g, ' ');
+    }
   };
 
   // 식단 선택/해제 핸들러
