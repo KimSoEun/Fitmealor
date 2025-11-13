@@ -219,6 +219,18 @@
     "활동적_(주_3-5회_운동)": "Active (Exercises 3-5 times a week)",
     "회원가입": "Sign Up",
     "회원가입에_실패했습니다.": "Sign up failed.",
-    "회원가입이_완료되었습니다!_로그인_페이지로_이동합니다.": "Sign up completed! Redirecting to the login page."
+    "회원가입이_완료되었습니다!_로그인_페이지로_이동합니다.": "Sign up completed! Redirecting to the login page.",
+    "ocr": {
+      "제목": "Nutrition Label Scan",
+      "부제목": "Take a photo of food labels to automatically analyze nutrition information",
+      "안내문구": "Please upload a photo of the food's ingredients and nutrition information.",
+      "업로드영역_제목": "Click or drag here to upload a photo",
+      "업로드영역_설명": "JPG, PNG formats supported (max 10MB)",
+      "분석중": "Analyzing image...",
+      "분석결과": "Analysis Result",
+      "다시_업로드": "Upload Again",
+      "업로드실패": "Failed to upload image.",
+      "분석실패": "Failed to analyze image."
+    }
   }
 }
