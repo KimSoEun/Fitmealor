@@ -384,14 +384,24 @@ const Home: React.FC = () => {
       setLoading(true);
       console.log('Fetching recommendations with profile:', profile);
 
+      // Validate that all required fields are present and not null/undefined
+      if (!profile.age || !profile.gender || !profile.height ||
+          !profile.weight || !profile.targetWeight ||
+          !profile.activityLevel || !profile.healthGoal) {
+        console.error('Profile is missing required fields:', profile);
+        setRecommendations([]);
+        setLoading(false);
+        return;
+      }
+
       // 사용자 프로필 데이터 사용
       const profileData = {
         user_id: 'demo_user',
-        age: profile.age,
+        age: Number(profile.age),
         gender: profile.gender,
-        height_cm: profile.height,
-        weight_kg: profile.weight,
-        target_weight_kg: profile.targetWeight,
+        height_cm: Number(profile.height),
+        weight_kg: Number(profile.weight),
+        target_weight_kg: Number(profile.targetWeight),
         activity_level: profile.activityLevel,
         health_goal: profile.healthGoal,
         allergies: selectedAllergies,
