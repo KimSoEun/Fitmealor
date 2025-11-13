@@ -378,12 +378,131 @@ const Home: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isAllergyDropdownOpen]);
 
+  // Fetch recommendations function (extracted for reuse)
+  const fetchRecommendations = async (profile: typeof userProfile) => {
+    try {
+      setLoading(true);
+      console.log('Fetching recommendations with profile:', profile);
+
+      // 사용자 프로필 데이터 사용
+      const profileData = {
+        user_id: 'demo_user',
+        age: profile.age,
+        gender: profile.gender,
+        height_cm: profile.height,
+        weight_kg: profile.weight,
+        target_weight_kg: profile.targetWeight,
+        activity_level: profile.activityLevel,
+        health_goal: profile.healthGoal,
+        allergies: selectedAllergies,
+        dietary_restrictions: []
+      };
+
+      const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // 커피, 영양제, 건강기능식품, 음료 등 식사가 아닌 항목 필터링
+        const excludedCategories = ['커피', '영양제', '건강기능식품', '음료', '차/음료', '보충제', '비타민'];
+        let filteredMeals = data.recommendations.filter((meal: Meal & {category: string}) => {
+          const category = meal.category.toLowerCase();
+          const name = meal.name.toLowerCase();
+
+          // 제외할 카테고리 체크
+          for (const excluded of excludedCategories) {
+            if (category.includes(excluded.toLowerCase())) {
+              return false;
+            }
+          }
+
+          // 이름에 커피, 비타민, 영양제가 포함되어 있으면 제외
+          if (name.includes('커피') || name.includes('coffee') ||
+              name.includes('비타민') || name.includes('vitamin') ||
+              name.includes('영양제') || name.includes('supplement')) {
+            return false;
+          }
+
+          return true;
+        });
+
+        // Apply chatbot filters if any
+        if (appliedFilters) {
+          filteredMeals = filteredMeals.filter((meal: Meal) => {
+            // Max calories filter
+            if (appliedFilters.maxCalories && meal.calories > appliedFilters.maxCalories) {
+              return false;
+            }
+
+            // Min protein filter
+            if (appliedFilters.minProtein && meal.protein_g < appliedFilters.minProtein) {
+              return false;
+            }
+
+            // Max carbs filter
+            if (appliedFilters.maxCarbs && meal.carbs_g > appliedFilters.maxCarbs) {
+              return false;
+            }
+
+            // Max fat filter
+            if (appliedFilters.maxFat && meal.fat_g > appliedFilters.maxFat) {
+              return false;
+            }
+
+            // Exclude ingredients filter
+            if (appliedFilters.excludeIngredients && appliedFilters.excludeIngredients.length > 0) {
+              const mealName = meal.name.toLowerCase();
+              for (const ingredient of appliedFilters.excludeIngredients) {
+                if (mealName.includes(ingredient.toLowerCase())) {
+                  return false;
+                }
+              }
+            }
+
+            // Include ingredients filter (at least one must match)
+            if (appliedFilters.includeIngredients && appliedFilters.includeIngredients.length > 0) {
+              const mealName = meal.name.toLowerCase();
+              const hasMatch = appliedFilters.includeIngredients.some(ingredient =>
+                mealName.includes(ingredient.toLowerCase())
+              );
+              if (!hasMatch) {
+                return false;
+              }
+            }
+
+            return true;
+          });
+
+          // Sort by preferences
+          if (appliedFilters.preferHighProtein) {
+            filteredMeals.sort((a, b) => b.protein_g - a.protein_g);
+          } else if (appliedFilters.preferLowCarb) {
+            filteredMeals.sort((a, b) => a.carbs_g - b.carbs_g);
+          }
+        }
+
+        setRecommendations(filteredMeals.slice(0, 12)); // 상위 12개만 표시
+      }
+    } catch (error) {
+      console.error('Failed to fetch recommendations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load user profile from API on component mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const token = localStorage.getItem('token');
         console.log('Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'null');
+
+        let loadedProfile = null;
 
         // Try authenticated profile first if token exists
         if (token) {
@@ -402,7 +521,7 @@ const Home: React.FC = () => {
             if (response.ok) {
               const data = await response.json();
               console.log('Loaded authenticated profile:', data);
-              setUserProfile({
+              loadedProfile = {
                 name: data.name,
                 age: data.age,
                 gender: data.gender,
@@ -411,8 +530,12 @@ const Home: React.FC = () => {
                 targetWeight: data.target_weight_kg,
                 activityLevel: data.activity_level,
                 healthGoal: data.health_goal
-              });
+              };
+              setUserProfile(loadedProfile);
               setProfileLoaded(true);
+
+              // Fetch recommendations immediately after profile is loaded
+              await fetchRecommendations(loadedProfile);
               return; // Successfully loaded authenticated profile
             } else {
               console.error('Profile request failed with status:', response.status);
@@ -438,7 +561,7 @@ const Home: React.FC = () => {
 
         if (demoResponse.ok) {
           const data = await demoResponse.json();
-          setUserProfile({
+          loadedProfile = {
             name: data.name,
             age: data.age,
             gender: data.gender,
@@ -447,12 +570,19 @@ const Home: React.FC = () => {
             targetWeight: data.target_weight_kg,
             activityLevel: data.activity_level,
             healthGoal: data.health_goal
-          });
+          };
+          setUserProfile(loadedProfile);
         }
         setProfileLoaded(true);
+
+        // Fetch recommendations with the loaded profile
+        if (loadedProfile) {
+          await fetchRecommendations(loadedProfile);
+        }
       } catch (error) {
         console.error('Failed to load profile:', error);
         setProfileLoaded(true); // 에러가 나도 기본값으로 진행
+        setLoading(false);
       }
     };
 
@@ -502,128 +632,16 @@ const Home: React.FC = () => {
     };
   }, [i18n]);
 
+  // Re-fetch recommendations when allergies or filters change
   useEffect(() => {
-    // 프로필이 로드되지 않았으면 실행하지 않음
+    // Only re-fetch if profile is already loaded
     if (!profileLoaded) {
       return;
     }
 
-    // 추천 식단 가져오기
-    const fetchRecommendations = async () => {
-      try {
-        // 사용자 프로필 데이터 사용
-        const profileData = {
-          user_id: 'demo_user',
-          age: userProfile.age,
-          gender: userProfile.gender,
-          height_cm: userProfile.height,
-          weight_kg: userProfile.weight,
-          target_weight_kg: userProfile.targetWeight,
-          activity_level: userProfile.activityLevel,
-          health_goal: userProfile.healthGoal,
-          allergies: selectedAllergies, // Add selected allergies
-          dietary_restrictions: [] // Can be extended later
-        };
-
-        const response = await fetch('http://localhost:8000/api/v1/recommendations/recommend', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(profileData)
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // 커피, 영양제, 건강기능식품, 음료 등 식사가 아닌 항목 필터링
-          const excludedCategories = ['커피', '영양제', '건강기능식품', '음료', '차/음료', '보충제', '비타민'];
-          let filteredMeals = data.recommendations.filter((meal: Meal & {category: string}) => {
-            const category = meal.category.toLowerCase();
-            const name = meal.name.toLowerCase();
-
-            // 제외할 카테고리 체크
-            for (const excluded of excludedCategories) {
-              if (category.includes(excluded.toLowerCase())) {
-                return false;
-              }
-            }
-
-            // 이름에 커피, 비타민, 영양제가 포함되어 있으면 제외
-            if (name.includes('커피') || name.includes('coffee') ||
-                name.includes('비타민') || name.includes('vitamin') ||
-                name.includes('영양제') || name.includes('supplement')) {
-              return false;
-            }
-
-            return true;
-          });
-
-          // Apply chatbot filters if any
-          if (appliedFilters) {
-            filteredMeals = filteredMeals.filter((meal: Meal) => {
-              // Max calories filter
-              if (appliedFilters.maxCalories && meal.calories > appliedFilters.maxCalories) {
-                return false;
-              }
-
-              // Min protein filter
-              if (appliedFilters.minProtein && meal.protein_g < appliedFilters.minProtein) {
-                return false;
-              }
-
-              // Max carbs filter
-              if (appliedFilters.maxCarbs && meal.carbs_g > appliedFilters.maxCarbs) {
-                return false;
-              }
-
-              // Max fat filter
-              if (appliedFilters.maxFat && meal.fat_g > appliedFilters.maxFat) {
-                return false;
-              }
-
-              // Exclude ingredients filter
-              if (appliedFilters.excludeIngredients && appliedFilters.excludeIngredients.length > 0) {
-                const mealName = meal.name.toLowerCase();
-                for (const ingredient of appliedFilters.excludeIngredients) {
-                  if (mealName.includes(ingredient.toLowerCase())) {
-                    return false;
-                  }
-                }
-              }
-
-              // Include ingredients filter (at least one must match)
-              if (appliedFilters.includeIngredients && appliedFilters.includeIngredients.length > 0) {
-                const mealName = meal.name.toLowerCase();
-                const hasMatch = appliedFilters.includeIngredients.some(ingredient =>
-                  mealName.includes(ingredient.toLowerCase())
-                );
-                if (!hasMatch) {
-                  return false;
-                }
-              }
-
-              return true;
-            });
-
-            // Sort by preferences
-            if (appliedFilters.preferHighProtein) {
-              filteredMeals.sort((a, b) => b.protein_g - a.protein_g);
-            } else if (appliedFilters.preferLowCarb) {
-              filteredMeals.sort((a, b) => a.carbs_g - b.carbs_g);
-            }
-          }
-
-          setRecommendations(filteredMeals.slice(0, 12)); // 상위 12개만 표시
-        }
-      } catch (error) {
-        console.error('Failed to fetch recommendations:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecommendations();
-  }, [profileLoaded, selectedAllergies, appliedFilters]); // Re-fetch when profile loads, allergies change, or filters are applied
+    console.log('Allergies or filters changed, re-fetching recommendations');
+    fetchRecommendations(userProfile);
+  }, [selectedAllergies, appliedFilters]); // Re-fetch when allergies change or filters are applied
 
   return (
     <div>
