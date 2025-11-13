@@ -11,6 +11,7 @@ from io import BytesIO
 from PIL import Image
 import httpx
 import re
+import os
 
 from app.core.config import settings
 
@@ -364,6 +365,143 @@ class FoodLabelOCRService:
                         continue
         
         return nutrition_data
+
+    async def extract_structured_info_with_openai(
+        self,
+        image_data: bytes
+    ) -> Dict[str, Any]:
+        """
+        Extract structured information from food label using OpenAI Vision API
+        Extracts: product name, allergens, and nutrition information
+
+        Args:
+            image_data: Image bytes
+
+        Returns:
+            Dict containing product_name, allergens, and nutrition_info
+        """
+        try:
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+            if not openai_api_key:
+                return {
+                    'success': False,
+                    'error': 'OpenAI API key not configured'
+                }
+
+            # Encode image to base64
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+            # Prepare OpenAI Vision API request
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {openai_api_key}'
+            }
+
+            prompt = """이 식품 라벨 이미지를 분석하여 다음 정보를 JSON 형식으로 추출해주세요:
+
+1. product_name: 제품명 (한글과 영어 모두 있다면 한글 우선)
+2. allergens: 알러지 유발 성분 리스트 (예: ["땅콩", "우유", "대두"])
+3. nutrition_info: 영양 정보 객체 (다음 항목 포함)
+   - calories: 칼로리 (kcal, 숫자만)
+   - carbohydrates: 탄수화물 (g, 숫자만)
+   - protein: 단백질 (g, 숫자만)
+   - fat: 지방 (g, 숫자만)
+   - sodium: 나트륨 (mg, 숫자만)
+   - sugar: 당류 (g, 숫자만)
+
+정보가 없는 항목은 null로 표시해주세요.
+응답은 반드시 순수 JSON 형식만 출력하고, 다른 텍스트는 포함하지 마세요.
+
+예시 형식:
+{
+  "product_name": "초코칩 쿠키",
+  "allergens": ["밀", "우유", "대두"],
+  "nutrition_info": {
+    "calories": 520,
+    "carbohydrates": 68.0,
+    "protein": 6.5,
+    "fat": 25.0,
+    "sodium": 380,
+    "sugar": 32.0
+  }
+}"""
+
+            payload = {
+                'model': 'gpt-4o',
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {
+                                'type': 'text',
+                                'text': prompt
+                            },
+                            {
+                                'type': 'image_url',
+                                'image_url': {
+                                    'url': f'data:image/jpeg;base64,{image_base64}'
+                                }
+                            }
+                        ]
+                    }
+                ],
+                'max_tokens': 1000,
+                'temperature': 0.2
+            }
+
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    'https://api.openai.com/v1/chat/completions',
+                    json=payload,
+                    headers=headers
+                )
+
+                if response.status_code != 200:
+                    logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+                    return {
+                        'success': False,
+                        'error': f'OpenAI API error: {response.status_code}'
+                    }
+
+                result = response.json()
+
+                # Extract the response content
+                content = result['choices'][0]['message']['content']
+
+                # Parse JSON from response
+                try:
+                    # Remove markdown code blocks if present
+                    content = content.strip()
+                    if content.startswith('```'):
+                        # Remove ```json or ``` at start and ``` at end
+                        content = content.split('\n', 1)[1] if '\n' in content else content
+                        content = content.rsplit('```', 1)[0] if content.endswith('```') else content
+                        content = content.strip()
+
+                    extracted_data = json.loads(content)
+
+                    return {
+                        'success': True,
+                        'product_name': extracted_data.get('product_name'),
+                        'allergens': extracted_data.get('allergens', []),
+                        'nutrition_info': extracted_data.get('nutrition_info', {})
+                    }
+
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse OpenAI response as JSON: {e}")
+                    logger.error(f"Response content: {content}")
+                    return {
+                        'success': False,
+                        'error': 'Failed to parse AI response',
+                        'raw_response': content
+                    }
+
+        except Exception as e:
+            logger.error(f"OpenAI Vision API error: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
 
 
 # Global OCR service instance

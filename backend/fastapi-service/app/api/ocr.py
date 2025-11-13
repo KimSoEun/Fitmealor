@@ -162,37 +162,37 @@ async def scan_and_detect_allergens(
 ):
     """
     Complete workflow: Scan food label and detect allergens
-    
+
     Args:
         file: Image file
         user_allergens: Comma-separated allergen list
         language: OCR language
-    
+
     Returns:
         OCR text, nutrition info, and allergen warnings
     """
     try:
         # Parse user allergens
         allergen_list = [a.strip() for a in user_allergens.split(',') if a.strip()]
-        
+
         # Scan image
         image_data = await file.read()
         ocr_result = await ocr_service.extract_text_from_image(
             image_data,
             language=language
         )
-        
+
         if not ocr_result.get('success'):
             raise HTTPException(
                 status_code=500,
                 detail="OCR failed"
             )
-        
+
         # Extract nutrition
         nutrition_info = ocr_service.extract_nutrition_info(
             ocr_result['text']
         )
-        
+
         # Detect allergens
         allergen_database = [
             {
@@ -208,13 +208,13 @@ async def scan_and_detect_allergens(
                 'keywords_en': ['egg'], 'keywords_ko': ['계란', '달걀']
             }
         ]
-        
+
         allergen_detection = await ocr_service.detect_allergens_in_text(
             ocr_result['text'],
             allergen_list,
             allergen_database
         )
-        
+
         return {
             "success": True,
             "extracted_text": ocr_result['text'],
@@ -224,9 +224,92 @@ async def scan_and_detect_allergens(
             "warning_level": allergen_detection['warning_level'],
             "is_safe": allergen_detection['is_safe']
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error in scan and detect: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/analyze-with-ai")
+async def analyze_food_label_with_ai(
+    file: UploadFile = File(...)
+):
+    """
+    Analyze food label using OpenAI Vision API
+    Extracts: product name, allergens, and nutrition information
+
+    Args:
+        file: Image file (JPG, PNG, HEIC)
+
+    Returns:
+        Structured data with product_name, allergens, and nutrition_info
+    """
+    try:
+        # Validate file type (be permissive to support various upload methods)
+        if file.content_type:
+            # Only reject if content_type is explicitly NOT an image
+            if not file.content_type.startswith('image/') and file.content_type != 'application/octet-stream':
+                raise HTTPException(
+                    status_code=400,
+                    detail="File must be an image"
+                )
+
+        # Read image data
+        image_data = await file.read()
+
+        # Verify it's actually an image and convert HEIC to JPEG if needed
+        try:
+            from PIL import Image
+            from io import BytesIO
+            import pillow_heif
+
+            # Register HEIC opener with PIL
+            pillow_heif.register_heif_opener()
+
+            # Open and verify image
+            img = Image.open(BytesIO(image_data))
+
+            # Convert HEIC to JPEG for OpenAI API compatibility
+            # (OpenAI Vision API works best with JPEG/PNG)
+            if img.format == 'HEIF' or file.filename.lower().endswith('.heic'):
+                logger.info("Converting HEIC image to JPEG")
+                # Convert to RGB if necessary
+                if img.mode not in ('RGB', 'L'):
+                    img = img.convert('RGB')
+
+                # Save as JPEG in memory
+                output = BytesIO()
+                img.save(output, format='JPEG', quality=95)
+                image_data = output.getvalue()
+                logger.info("HEIC conversion successful")
+
+        except Exception as e:
+            logger.error(f"Image validation error: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid image file: {str(e)}"
+            )
+
+        # Extract structured information using OpenAI Vision API
+        result = await ocr_service.extract_structured_info_with_openai(image_data)
+
+        if not result.get('success'):
+            raise HTTPException(
+                status_code=500,
+                detail=result.get('error', 'AI analysis failed')
+            )
+
+        return {
+            "success": True,
+            "product_name": result.get('product_name'),
+            "allergens": result.get('allergens', []),
+            "nutrition_info": result.get('nutrition_info', {})
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing food label with AI: {e}")
         raise HTTPException(status_code=500, detail=str(e))

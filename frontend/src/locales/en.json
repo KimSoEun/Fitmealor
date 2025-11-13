@@ -221,11 +221,11 @@
     "회원가입에_실패했습니다.": "Sign up failed.",
     "회원가입이_완료되었습니다!_로그인_페이지로_이동합니다.": "Sign up completed! Redirecting to the login page.",
     "ocr": {
-      "제목": "Nutrition Label Scan",
-      "부제목": "Take a photo of food labels to automatically analyze nutrition information",
-      "안내문구": "Please upload a photo of the food's ingredients and nutrition information.",
-      "업로드영역_제목": "Click or drag here to upload a photo",
-      "업로드영역_설명": "JPG, PNG formats supported (max 10MB)",
+      "제목": "Food Label Scanner",
+      "부제목": "Snap a photo and we'll analyze the nutrition facts automatically",
+      "안내문구": "Take a photo or upload an image of the nutrition facts label",
+      "업로드영역_제목": "Click or drag to upload photo",
+      "업로드영역_설명": "JPG, PNG, HEIC supported · Max 10MB",
       "분석중": "Analyzing image...",
       "분석결과": "Analysis Result",
       "다시_업로드": "Upload Again",
@@ -233,7 +233,18 @@
       "분석실패": "Failed to analyze image.",
       "사진_추가": "Add Photo",
       "업로드된_사진": "Uploaded Photos",
-      "개": ""
+      "개": "",
+      "제품명": "Product Name",
+      "알러지_성분": "Allergen Ingredients",
+      "영양_정보": "Nutrition Information",
+      "칼로리": "Calories",
+      "탄수화물": "Carbohydrates",
+      "단백질": "Protein",
+      "지방": "Fat",
+      "나트륨": "Sodium",
+      "당류": "Sugar",
+      "정보_없음": "No information",
+      "분석_결과_제목": "Extracted Information"
     }
   }
 }
