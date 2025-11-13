@@ -230,7 +230,10 @@
       "분석결과": "Analysis Result",
       "다시_업로드": "Upload Again",
       "업로드실패": "Failed to upload image.",
-      "분석실패": "Failed to analyze image."
+      "분석실패": "Failed to analyze image.",
+      "사진_추가": "Add Photo",
+      "업로드된_사진": "Uploaded Photos",
+      "개": ""
     }
   }
 }
