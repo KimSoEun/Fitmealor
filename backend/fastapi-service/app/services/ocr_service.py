@@ -366,13 +366,105 @@ class FoodLabelOCRService:
         
         return nutrition_data
 
+    async def extract_text_with_clova_ocr(
+        self,
+        image_data: bytes
+    ) -> Dict[str, Any]:
+        """
+        Extract text from image using CLOVA OCR API
+
+        Args:
+            image_data: Image bytes
+
+        Returns:
+            Dict containing extracted text and OCR result
+        """
+        try:
+            clova_api_url = os.getenv('CLOVA_OCR_URL',
+                'https://p5xdnx3o9h.apigw.ntruss.com/custom/v1/47429/c26d84d5ff3819b6f84c6b97c58e38e8ee232b5fc5ee863bf1d3b6ce204602c3/infer')
+            clova_api_key = os.getenv('CLOVA_OCR_SECRET',
+                'alZuRUtubFVyQkFMRGpiT1lCeXhDZkRzV0poZ0pzclg=')
+
+            if not clova_api_key:
+                return {
+                    'success': False,
+                    'error': 'CLOVA OCR API key not configured'
+                }
+
+            # Encode image to base64
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+            # Prepare CLOVA OCR request
+            import time
+            import uuid
+
+            request_json = {
+                'version': 'V2',
+                'requestId': str(uuid.uuid4()),
+                'timestamp': int(time.time() * 1000),
+                'images': [
+                    {
+                        'format': 'jpg',
+                        'name': 'food_label',
+                        'data': image_base64
+                    }
+                ]
+            }
+
+            headers = {
+                'Content-Type': 'application/json',
+                'X-OCR-SECRET': clova_api_key
+            }
+
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    clova_api_url,
+                    json=request_json,
+                    headers=headers
+                )
+
+                if response.status_code != 200:
+                    logger.error(f"CLOVA OCR API error: {response.status_code} - {response.text}")
+                    return {
+                        'success': False,
+                        'error': f'CLOVA OCR API error: {response.status_code}'
+                    }
+
+                result = response.json()
+
+                # Extract text from OCR result
+                extracted_text = []
+                if 'images' in result and len(result['images']) > 0:
+                    fields = result['images'][0].get('fields', [])
+                    for field in fields:
+                        text = field.get('inferText', '')
+                        if text:
+                            extracted_text.append(text)
+
+                full_text = ' '.join(extracted_text)
+
+                logger.info(f"CLOVA OCR extracted text length: {len(full_text)}")
+
+                return {
+                    'success': True,
+                    'text': full_text,
+                    'raw_result': result
+                }
+
+        except Exception as e:
+            logger.error(f"CLOVA OCR error: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
     async def extract_structured_info_with_openai(
         self,
         image_data: bytes
     ) -> Dict[str, Any]:
         """
-        Extract structured information from food label using OpenAI Vision API
-        Extracts: product name, allergens, and nutrition information
+        Extract structured information from food label using OpenAI Vision API (GPT-4o)
+        Directly analyzes image without intermediate OCR step
 
         Args:
             image_data: Image bytes
@@ -399,18 +491,23 @@ class FoodLabelOCRService:
 
             prompt = """이 식품 라벨 이미지를 분석하여 다음 정보를 JSON 형식으로 추출해주세요:
 
-1. product_name: 제품명 (한글과 영어 모두 있다면 한글 우선)
-2. allergens: 알러지 유발 성분 리스트 (예: ["땅콩", "우유", "대두"])
+추출할 정보:
+1. product_name: 제품명 (한글과 영어 모두 있다면 한글 우선, 없으면 null)
+2. allergens: 알러지 유발 성분 리스트 (예: ["땅콩", "우유", "대두"], 없으면 빈 배열)
 3. nutrition_info: 영양 정보 객체 (다음 항목 포함)
-   - calories: 칼로리 (kcal, 숫자만)
-   - carbohydrates: 탄수화물 (g, 숫자만)
-   - protein: 단백질 (g, 숫자만)
-   - fat: 지방 (g, 숫자만)
-   - sodium: 나트륨 (mg, 숫자만)
-   - sugar: 당류 (g, 숫자만)
+   - calories: 칼로리 (kcal, 숫자만, 없으면 null)
+   - carbohydrates: 탄수화물 (g, 숫자만, 없으면 null)
+   - protein: 단백질 (g, 숫자만, 없으면 null)
+   - fat: 지방 (g, 숫자만, 없으면 null)
+   - sodium: 나트륨 (mg, 숫자만, 없으면 null)
+   - sugar: 당류 (g, 숫자만, 없으면 null)
 
-정보가 없는 항목은 null로 표시해주세요.
-응답은 반드시 순수 JSON 형식만 출력하고, 다른 텍스트는 포함하지 마세요.
+중요:
+- 이미지에서 보이는 모든 텍스트를 주의 깊게 읽어주세요
+- 영양성분표가 있다면 정확한 숫자를 추출해주세요
+- 알러지 성분은 "알러지 유발 물질", "알레르기 유발 성분", "함유" 등의 섹션에서 찾아주세요
+- 정보가 없는 항목은 null로 표시해주세요
+- 응답은 반드시 순수 JSON 형식만 출력하고, 다른 텍스트는 포함하지 마세요
 
 예시 형식:
 {
@@ -449,6 +546,8 @@ class FoodLabelOCRService:
                 'temperature': 0.2
             }
 
+            logger.info("Sending image to OpenAI Vision API...")
+
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     'https://api.openai.com/v1/chat/completions',
@@ -457,16 +556,18 @@ class FoodLabelOCRService:
                 )
 
                 if response.status_code != 200:
-                    logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+                    logger.error(f"OpenAI Vision API error: {response.status_code} - {response.text}")
                     return {
                         'success': False,
-                        'error': f'OpenAI API error: {response.status_code}'
+                        'error': f'OpenAI Vision API error: {response.status_code}'
                     }
 
                 result = response.json()
 
                 # Extract the response content
                 content = result['choices'][0]['message']['content']
+
+                logger.info(f"OpenAI Vision API response: {content[:200]}...")
 
                 # Parse JSON from response
                 try:
@@ -479,6 +580,8 @@ class FoodLabelOCRService:
                         content = content.strip()
 
                     extracted_data = json.loads(content)
+
+                    logger.info(f"Successfully extracted data from image using OpenAI Vision")
 
                     return {
                         'success': True,

@@ -237,11 +237,11 @@ async def analyze_food_label_with_ai(
     file: UploadFile = File(...)
 ):
     """
-    Analyze food label using OpenAI Vision API
+    Analyze food label using CLOVA OCR + OpenAI GPT
     Extracts: product name, allergens, and nutrition information
 
     Args:
-        file: Image file (JPG, PNG, HEIC)
+        file: Image or PDF file (JPG, PNG, PDF)
 
     Returns:
         Structured data with product_name, allergens, and nutrition_info
@@ -249,50 +249,90 @@ async def analyze_food_label_with_ai(
     try:
         # Validate file type (be permissive to support various upload methods)
         if file.content_type:
-            # Only reject if content_type is explicitly NOT an image
-            if not file.content_type.startswith('image/') and file.content_type != 'application/octet-stream':
+            # Accept images and HEIC files
+            is_valid_type = (
+                file.content_type.startswith('image/') or
+                file.content_type == 'application/octet-stream' or
+                (file.filename and (file.filename.lower().endswith('.heic') or
+                                   file.filename.lower().endswith('.heif')))
+            )
+            if not is_valid_type:
                 raise HTTPException(
                     status_code=400,
-                    detail="File must be an image"
+                    detail="File must be an image or HEIC file"
                 )
 
-        # Read image data
-        image_data = await file.read()
+        # Read file data
+        file_data = await file.read()
 
-        # Verify it's actually an image and convert HEIC to JPEG if needed
+        # Check if it's a PDF, HEIC, or regular image and convert if needed
         try:
             from PIL import Image
             from io import BytesIO
-            import pillow_heif
+            import fitz  # PyMuPDF
 
-            # Register HEIC opener with PIL
-            pillow_heif.register_heif_opener()
+            # Check if file is HEIC
+            if file.filename and (file.filename.lower().endswith('.heic') or file.filename.lower().endswith('.heif')):
+                logger.info("Converting HEIC to image")
+                try:
+                    import pillow_heif
+                    # Register HEIF opener with Pillow
+                    pillow_heif.register_heif_opener()
 
-            # Open and verify image
-            img = Image.open(BytesIO(image_data))
+                    # Open HEIC file
+                    img = Image.open(BytesIO(file_data))
 
-            # Convert HEIC to JPEG for OpenAI API compatibility
-            # (OpenAI Vision API works best with JPEG/PNG)
-            if img.format == 'HEIF' or file.filename.lower().endswith('.heic'):
-                logger.info("Converting HEIC image to JPEG")
-                # Convert to RGB if necessary
-                if img.mode not in ('RGB', 'L'):
-                    img = img.convert('RGB')
+                    # Convert to JPEG
+                    output = BytesIO()
+                    img.save(output, format='JPEG', quality=95)
+                    image_data = output.getvalue()
+
+                    logger.info("HEIC conversion successful")
+                except ImportError:
+                    logger.error("pillow-heif not installed. Install with: pip install pillow-heif")
+                    raise HTTPException(
+                        status_code=500,
+                        detail="HEIC support not available. Please upload JPG or PNG instead."
+                    )
+            # Check if file is PDF
+            elif file.content_type == 'application/pdf' or file.filename.lower().endswith('.pdf'):
+                logger.info("Converting PDF to image")
+
+                # Open PDF with PyMuPDF
+                pdf_document = fitz.open(stream=file_data, filetype="pdf")
+
+                # Get first page (most food labels are single page)
+                page = pdf_document[0]
+
+                # Render page to image (high quality)
+                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom for better quality
+
+                # Convert to PIL Image
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
                 # Save as JPEG in memory
                 output = BytesIO()
                 img.save(output, format='JPEG', quality=95)
                 image_data = output.getvalue()
-                logger.info("HEIC conversion successful")
+
+                pdf_document.close()
+                logger.info("PDF conversion successful")
+            else:
+                # It's already an image
+                image_data = file_data
+
+                # Verify it's a valid image
+                img = Image.open(BytesIO(image_data))
+                logger.info(f"Image format: {img.format}")
 
         except Exception as e:
-            logger.error(f"Image validation error: {e}")
+            logger.error(f"File validation error: {e}")
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid image file: {str(e)}"
+                detail=f"Invalid file: {str(e)}"
             )
 
-        # Extract structured information using OpenAI Vision API
+        # Extract structured information using CLOVA OCR + OpenAI GPT
         result = await ocr_service.extract_structured_info_with_openai(image_data)
 
         if not result.get('success'):

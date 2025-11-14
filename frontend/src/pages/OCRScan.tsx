@@ -62,17 +62,19 @@ export default function OCRScan() {
   };
 
   const handleFile = async (file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      // alert(t('ocr.업로드실패'));
-      alert(i18n.language === 'en' ? 'Failed to upload image.' : '이미지 업로드에 실패했습니다.')
+    // Validate file type (image or HEIC)
+    const isValidType = file.type.startsWith('image/') ||
+                        file.name.toLowerCase().endsWith('.heic') ||
+                        file.name.toLowerCase().endsWith('.heif');
+
+    if (!isValidType) {
+      alert(i18n.language === 'en' ? 'Please upload an image or HEIC file.' : '이미지 또는 HEIC 파일을 업로드해주세요.')
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      // alert(t('ocr.업로드실패'));
-      alert(i18n.language === 'en' ? 'Failed to upload image.' : '이미지 업로드에 실패했습니다.')
+      alert(i18n.language === 'en' ? 'File size must be less than 10MB.' : '파일 크기는 10MB 이하여야 합니다.')
       return;
     }
 
@@ -205,7 +207,7 @@ export default function OCRScan() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,.heic,.heif"
             multiple
             onChange={handleFileInput}
             className="hidden"
