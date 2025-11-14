@@ -225,7 +225,7 @@
       "부제목": "Snap a photo and we'll analyze the nutrition facts automatically",
       "안내문구": "Take a photo or upload an image of the nutrition facts label",
       "업로드영역_제목": "Click or drag to upload photo",
-      "업로드영역_설명": "JPG, PNG, HEIC supported · Max 10MB",
+      "업로드영역_설명": "JPG, PNG, PDF supported · Max 10MB",
       "분석중": "Analyzing image...",
       "분석결과": "Analysis Result",
       "다시_업로드": "Upload Again",

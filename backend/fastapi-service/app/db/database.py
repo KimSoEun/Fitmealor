@@ -35,4 +35,5 @@ def get_db():
 def init_db():
     """Initialize database tables"""
     from app.models.user import User
+    from app.models.food_product import FoodProduct
     Base.metadata.create_all(bind=engine)
