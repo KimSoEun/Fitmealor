@@ -3,6 +3,7 @@ User database model for authentication
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
 
@@ -25,3 +26,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    food_products = relationship("FoodProduct", back_populates="user")
+    recommendation_history = relationship("RecommendationHistory", back_populates="user")

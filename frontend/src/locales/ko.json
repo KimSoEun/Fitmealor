@@ -4,7 +4,7 @@
   "nav_home": "홈",
   "nav_health_profile": "건강 프로필",
   "nav_ocr_scan": "OCR 스캔",
-  "nav_recommendations": "추천",
+  "nav_history": "히스토리",
   "nav_logout": "로그아웃",
   "healthprofile": {
     "kcal/일": "kcal/일",

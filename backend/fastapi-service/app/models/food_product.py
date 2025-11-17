@@ -2,7 +2,8 @@
 Food Product model for user-scanned products
 """
 
-from sqlalchemy import Column, Integer, String, Float, JSON, DateTime
+from sqlalchemy import Column, Integer, String, Float, JSON, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
 
@@ -13,7 +14,11 @@ class FoodProduct(Base):
     __tablename__ = "food_products"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
+
+    # Relationship to User
+    user = relationship("User", back_populates="food_products")
 
     # Nutrition information
     calories = Column(Float, nullable=True)

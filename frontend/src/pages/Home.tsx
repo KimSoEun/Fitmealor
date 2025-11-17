@@ -142,12 +142,12 @@ const Home: React.FC = () => {
 
   // 사용자 프로필 데이터
   const [userProfile, setUserProfile] = useState({
-    name: '김건강',
+    name: 'Dylan',
     age: 25,
     gender: '남성',
-    height: 175.0,
+    height: 180.0,
     weight: 70.0,
-    targetWeight: 65.0,
+    targetWeight: 75.0,
     activityLevel: '활동적',
     healthGoal: '근육증가'
   });

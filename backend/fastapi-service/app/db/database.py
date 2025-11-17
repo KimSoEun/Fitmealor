@@ -36,4 +36,5 @@ def init_db():
     """Initialize database tables"""
     from app.models.user import User
     from app.models.food_product import FoodProduct
+    from app.models.recommendation_history import RecommendationHistory
     Base.metadata.create_all(bind=engine)

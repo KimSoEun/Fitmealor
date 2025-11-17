@@ -9,6 +9,7 @@ import HealthProfile from './pages/HealthProfile';
 import OCRScan from './pages/OCRScan';
 import Recommendations from './pages/Recommendations';
 import Favorites from './pages/Favorites';
+import History from './pages/History';
 
 // Protected route component - redirects to login if not authenticated
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -37,6 +38,7 @@ function App() {
           <Route path="/ocr-scan" element={<ProtectedRoute><OCRScan /></ProtectedRoute>} />
           <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
           <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
         </Routes>
       </Layout>
     </Router>

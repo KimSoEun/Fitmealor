@@ -10,6 +10,8 @@ import logging
 
 from app.db.database import get_db
 from app.models.food_product import FoodProduct
+from app.models.user import User
+from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,7 @@ class RegisterProductRequest(BaseModel):
 @router.post("/register")
 async def register_product(
     request: RegisterProductRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -41,6 +44,7 @@ async def register_product(
 
     Args:
         request: Product information including name, allergens, and nutrition
+        current_user: Authenticated user
         db: Database session
 
     Returns:
@@ -54,8 +58,9 @@ async def register_product(
                 detail="Product name is required"
             )
 
-        # Create new food product
+        # Create new food product with user_id
         new_product = FoodProduct(
+            user_id=current_user.id,
             name=request.name.strip(),
             allergens=request.allergens or [],
             calories=request.nutrition_info.calories if request.nutrition_info else None,
@@ -71,7 +76,7 @@ async def register_product(
         db.commit()
         db.refresh(new_product)
 
-        logger.info(f"Registered new product: {new_product.name} (ID: {new_product.id})")
+        logger.info(f"Registered new product: {new_product.name} (ID: {new_product.id}) for user {current_user.id}")
 
         return {
             "success": True,
@@ -107,21 +112,27 @@ async def register_product(
 async def list_products(
     skip: int = 0,
     limit: int = 100,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get list of registered food products
+    Get list of registered food products for the current user
 
     Args:
         skip: Number of records to skip (for pagination)
         limit: Maximum number of records to return
+        current_user: Authenticated user
         db: Database session
 
     Returns:
-        List of food products
+        List of food products for the current user
     """
     try:
-        products = db.query(FoodProduct).offset(skip).limit(limit).all()
+        products = db.query(FoodProduct)\
+            .filter(FoodProduct.user_id == current_user.id)\
+            .offset(skip)\
+            .limit(limit)\
+            .all()
 
         return {
             "success": True,
@@ -156,20 +167,24 @@ async def list_products(
 @router.get("/products/{product_id}")
 async def get_product(
     product_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get a specific food product by ID
+    Get a specific food product by ID (only for the current user)
 
     Args:
         product_id: Product ID
+        current_user: Authenticated user
         db: Database session
 
     Returns:
         Product details
     """
     try:
-        product = db.query(FoodProduct).filter(FoodProduct.id == product_id).first()
+        product = db.query(FoodProduct)\
+            .filter(FoodProduct.id == product_id, FoodProduct.user_id == current_user.id)\
+            .first()
 
         if not product:
             raise HTTPException(

@@ -47,10 +47,10 @@ const getBMIPosition = (bmi: number): number => {
 
 export default function HealthProfile() {
   const [profile, setProfile] = useState({
-    name: '김건강',
+    name: 'Dylan',
     age: 25,
     gender: '남성',
-    height: 175,
+    height: 180,
     weight: 70,
     targetWeight: 65,
     activityLevel: '활동적',
