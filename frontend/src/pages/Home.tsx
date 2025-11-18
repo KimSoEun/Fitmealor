@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../config';
 
 interface Meal {
   name: string;
@@ -57,6 +58,7 @@ const Home: React.FC = () => {
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [currentLang, setCurrentLang] = useState(i18n.language);
+  const [favoritedMeals, setFavoritedMeals] = useState<Set<string>>(new Set());
 
   // Chatbot states
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -268,6 +270,94 @@ const Home: React.FC = () => {
         ? prev.filter(a => a !== allergyKey)
         : [...prev, allergyKey]
     );
+  };
+
+  // Fetch user's favorites from backend
+  const fetchFavorites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/favorites/list`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.favorites) {
+          const favoriteCodes = new Set(data.favorites.map((f: any) => f.meal_code));
+          setFavoritedMeals(favoriteCodes);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
+    }
+  };
+
+  // Toggle favorite status for a meal
+  const handleToggleFavorite = async (meal: Meal, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering meal selection
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert(currentLang === 'en' ? 'Please login first' : '로그인이 필요합니다');
+      return;
+    }
+
+    const mealCode = meal.name;
+    const isFavorited = favoritedMeals.has(mealCode);
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites/remove/${mealCode}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          setFavoritedMeals(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(mealCode);
+            return newSet;
+          });
+        } else {
+          throw new Error('Failed to remove favorite');
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites/add`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            meal_code: mealCode,
+            meal_name_ko: meal.name_kr || meal.name,
+            meal_name_en: meal.name_en,
+            calories: Math.round(meal.calories),
+            carbohydrates: Math.round(meal.carbs_g),
+            protein: Math.round(meal.protein_g),
+            fat: Math.round(meal.fat_g),
+            sodium: null
+          })
+        });
+
+        if (response.ok) {
+          setFavoritedMeals(prev => new Set(prev).add(mealCode));
+        } else {
+          throw new Error('Failed to add favorite');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert(currentLang === 'en' ? 'Failed to update favorite' : '즐겨찾기 업데이트에 실패했습니다');
+    }
   };
 
   // Chatbot handler - Process user input and extract filters
@@ -652,6 +742,11 @@ const Home: React.FC = () => {
     console.log('Allergies or filters changed, re-fetching recommendations');
     fetchRecommendations(userProfile);
   }, [selectedAllergies, appliedFilters]); // Re-fetch when allergies change or filters are applied
+
+  // Fetch favorites on component mount
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
 
   return (
     <div>
@@ -1081,6 +1176,7 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recommendations.map((meal, index) => {
               const isSelected = selectedMeals.some(m => m.name === meal.name);
+              const isFavorited = favoritedMeals.has(meal.name);
               return (
                 <div
                   key={index}
@@ -1091,13 +1187,27 @@ const Home: React.FC = () => {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold text-gray-900 flex-1">{getDisplayName(meal)}</h3>
-                    {isSelected && (
-                      <div className="flex-shrink-0 bg-green-500 rounded-full p-1">
-                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => handleToggleFavorite(meal, e)}
+                        className="flex-shrink-0 text-red-500 hover:scale-110 transition-transform"
+                        title={isFavorited
+                          ? (currentLang === 'en' ? 'Remove from favorites' : '즐겨찾기에서 제거')
+                          : (currentLang === 'en' ? 'Add to favorites' : '즐겨찾기에 추가')
+                        }
+                      >
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill={isFavorited ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
-                      </div>
-                    )}
+                      </button>
+                      {isSelected && (
+                        <div className="flex-shrink-0 bg-green-500 rounded-full p-1">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">

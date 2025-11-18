@@ -30,3 +30,4 @@ class User(Base):
     # Relationships
     food_products = relationship("FoodProduct", back_populates="user")
     recommendation_history = relationship("RecommendationHistory", back_populates="user")
+    favorites = relationship("Favorite", back_populates="user")
