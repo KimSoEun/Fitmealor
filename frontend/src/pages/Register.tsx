@@ -18,8 +18,17 @@ export default function Register() {
     activityLevel: '활동적',
     healthGoal: '체중유지'
   });
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // 22종 알러지 유발물질 목록 (한국 식품의약품안전처 기준)
+  const allergensList = [
+    'register.난류(계란)', 'register.우유', 'register.메밀', 'register.땅콩', 'register.대두', 'register.밀',
+    'register.고등어', 'register.게', 'register.새우', 'register.돼지고기', 'register.복숭아', 'register.토마토',
+    'register.아황산류', 'register.호두', 'register.닭고기', 'register.쇠고기', 'register.오징어', 'register.조개류',
+    'register.잣', 'register.호두류', 'register.아몬드', 'register.유당'
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +92,7 @@ export default function Register() {
           target_weight_kg: parseFloat(formData.targetWeight),
           activity_level: formData.activityLevel,
           health_goal: formData.healthGoal,
-          allergies: []
+          allergens: selectedAllergens
         }),
       });
 
@@ -108,6 +117,16 @@ export default function Register() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleAllergenToggle = (allergenKey: string) => {
+    // 번역된 값을 저장 (DB에 저장될 값)
+    const allergenValue = t(allergenKey);
+    setSelectedAllergens(prev =>
+      prev.includes(allergenValue)
+        ? prev.filter(a => a !== allergenValue)
+        : [...prev, allergenValue]
+    );
   };
 
   return (
@@ -346,6 +365,37 @@ export default function Register() {
                 <option value="체중유지">{t('register.체중유지')}</option>
                 <option value="근육증가">{t('register.근육증가')}</option>
               </select>
+            </div>
+
+            {/* 알러지 정보 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                {t('register.알러지_정보')} <span className="text-gray-500 font-normal">({t('register.선택사항')})</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {allergensList.map((allergenKey) => {
+                  const allergenValue = t(allergenKey);
+                  return (
+                    <button
+                      key={allergenKey}
+                      type="button"
+                      onClick={() => handleAllergenToggle(allergenKey)}
+                      className={`px-3 py-2 text-xs rounded-lg border transition-all ${
+                        selectedAllergens.includes(allergenValue)
+                          ? 'bg-green-100 border-green-500 text-green-700 font-semibold'
+                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {allergenValue}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedAllergens.length > 0 && (
+                <p className="mt-2 text-xs text-green-600">
+                  {t('register.선택됨')}: {selectedAllergens.length}{t('register.개')}
+                </p>
+              )}
             </div>
 
             {/* 약관 동의 */}

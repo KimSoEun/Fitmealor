@@ -35,6 +35,7 @@ class UserRegister(BaseModel):
     target_weight_kg: Optional[float] = None
     activity_level: Optional[str] = None
     health_goal: Optional[str] = None
+    allergens: Optional[list] = None
 
 
 class UserLogin(BaseModel):
@@ -58,6 +59,7 @@ class UserProfile(BaseModel):
     target_weight_kg: Optional[float] = None
     activity_level: Optional[str] = None
     health_goal: Optional[str] = None
+    allergens: Optional[list] = None
 
     class Config:
         from_attributes = True
@@ -72,6 +74,7 @@ class UserProfileUpdate(BaseModel):
     target_weight_kg: Optional[float] = None
     activity_level: Optional[str] = None
     health_goal: Optional[str] = None
+    allergens: Optional[list] = None
 
 
 # Dependency to get current user
@@ -123,7 +126,8 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
         weight_kg=user_data.weight_kg,
         target_weight_kg=user_data.target_weight_kg,
         activity_level=user_data.activity_level,
-        health_goal=user_data.health_goal
+        health_goal=user_data.health_goal,
+        allergens=user_data.allergens
     )
 
     db.add(new_user)

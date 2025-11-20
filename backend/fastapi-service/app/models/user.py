@@ -2,7 +2,7 @@
 User database model for authentication
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
@@ -23,6 +23,7 @@ class User(Base):
     target_weight_kg = Column(Float, nullable=True)
     activity_level = Column(String, nullable=True)
     health_goal = Column(String, nullable=True)
+    allergens = Column(JSON, nullable=True)  # List of allergens (22 types)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
