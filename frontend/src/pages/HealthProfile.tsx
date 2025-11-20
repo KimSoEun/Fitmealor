@@ -54,13 +54,22 @@ export default function HealthProfile() {
     weight: 70,
     targetWeight: 65,
     activityLevel: '활동적',
-    healthGoal: '근육증가'
+    healthGoal: '근육증가',
+    allergens: [] as string[]
   });
 
   const [editedProfile, setEditedProfile] = useState(profile);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { t, i18n } = useTranslation();
+
+  // 22종 알러지 유발물질 목록
+  const allergensList = [
+    'register.난류(계란)', 'register.우유', 'register.메밀', 'register.땅콩', 'register.대두', 'register.밀',
+    'register.고등어', 'register.게', 'register.새우', 'register.돼지고기', 'register.복숭아', 'register.토마토',
+    'register.아황산류', 'register.호두', 'register.닭고기', 'register.쇠고기', 'register.오징어', 'register.조개류',
+    'register.잣', 'register.호두류', 'register.아몬드', 'register.유당'
+  ];
 
   const bmi = calculateBMI(profile.weight, profile.height);
   const bmiCategory = getBMICategory(bmi);
@@ -152,7 +161,8 @@ export default function HealthProfile() {
           weight_kg: editedProfile.weight,
           target_weight_kg: editedProfile.targetWeight,
           activity_level: editedProfile.activityLevel,
-          health_goal: editedProfile.healthGoal
+          health_goal: editedProfile.healthGoal,
+          allergens: editedProfile.allergens
         }),
       });
 
@@ -174,6 +184,16 @@ export default function HealthProfile() {
     setEditedProfile(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleAllergenToggle = (allergenKey: string) => {
+    const allergenValue = t(allergenKey);
+    setEditedProfile(prev => ({
+      ...prev,
+      allergens: prev.allergens.includes(allergenValue)
+        ? prev.allergens.filter(a => a !== allergenValue)
+        : [...prev.allergens, allergenValue]
     }));
   };
 
@@ -209,7 +229,8 @@ export default function HealthProfile() {
           weight: data.weight_kg,
           targetWeight: data.target_weight_kg,
           activityLevel: data.activity_level,
-          healthGoal: data.health_goal
+          healthGoal: data.health_goal,
+          allergens: data.allergens || []
         };
 
         setProfile(loadedProfile);
@@ -332,6 +353,37 @@ export default function HealthProfile() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* Allergen Information Card */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            {t('register.알러지_정보')} <span className="text-sm text-gray-500 font-normal">({t('register.선택사항')})</span>
+          </h2>
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            {allergensList.map((allergenKey) => {
+              const allergenValue = t(allergenKey);
+              return (
+                <button
+                  key={allergenKey}
+                  type="button"
+                  onClick={() => handleAllergenToggle(allergenKey)}
+                  className={`px-3 py-2 text-xs rounded-lg border transition-all ${
+                    editedProfile.allergens.includes(allergenValue)
+                      ? 'bg-green-100 border-green-500 text-green-700 font-semibold'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {allergenValue}
+                </button>
+              );
+            })}
+          </div>
+          {editedProfile.allergens.length > 0 && (
+            <p className="mt-3 text-sm text-green-600">
+              {t('register.선택됨')}: {editedProfile.allergens.length}{t('register.개')}
+            </p>
+          )}
         </div>
 
         {/* BMI Card */}

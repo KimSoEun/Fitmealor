@@ -100,6 +100,16 @@ const Home: React.FC = () => {
     return currentLang === 'en' ? allergyTranslations[key].en : allergyTranslations[key].ko;
   };
 
+  // Reverse map: Convert allergen display value (from DB) to key
+  const mapAllergenValueToKey = (allergenValue: string): string | null => {
+    for (const [key, translations] of Object.entries(allergyTranslations)) {
+      if (translations.ko === allergenValue || translations.en === allergenValue) {
+        return key;
+      }
+    }
+    return null;
+  };
+
   // Health goal translations
   const healthGoalTranslations: Record<string, { ko: string; en: string }> = {
     '체중감량': { ko: '체중감량', en: 'Weight Loss' },
@@ -633,6 +643,15 @@ const Home: React.FC = () => {
               };
               setUserProfile(loadedProfile);
               setProfileLoaded(true);
+
+              // Auto-apply user's allergens to filter
+              if (data.allergens && Array.isArray(data.allergens)) {
+                const allergenKeys = data.allergens
+                  .map(mapAllergenValueToKey)
+                  .filter((key): key is string => key !== null);
+                console.log('Auto-applying allergens to filter:', allergenKeys);
+                setSelectedAllergies(allergenKeys);
+              }
 
               // Fetch recommendations immediately after profile is loaded
               await fetchRecommendations(loadedProfile);
