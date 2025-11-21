@@ -243,9 +243,9 @@
     "오징어": "Squid",
     "조개류": "Shellfish",
     "잣": "Pine Nuts",
-    "호두류": "Tree Nuts",
-    "아몬드": "Almonds",
-    "유당": "Lactose",
+    "굴": "Oysters",
+    "전복": "Abalone",
+    "홍합": "Mussels",
     "ocr": {
       "제목": "Food Label Scanner",
       "부제목": "Snap a photo and we'll analyze the nutrition facts automatically",

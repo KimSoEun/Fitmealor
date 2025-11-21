@@ -88,9 +88,9 @@ const Home: React.FC = () => {
     'squid': { ko: '오징어', en: 'Squid' },
     'shellfish': { ko: '조개류', en: 'Shellfish' },
     'pine_nuts': { ko: '잣', en: 'Pine Nuts' },
-    'crustaceans': { ko: '갑각류', en: 'Crustaceans' },
-    'tree_nuts': { ko: '견과류', en: 'Tree Nuts' },
-    'dairy': { ko: '유제품', en: 'Dairy' }
+    'oysters': { ko: '굴', en: 'Oysters' },
+    'abalone': { ko: '전복', en: 'Abalone' },
+    'mussels': { ko: '홍합', en: 'Mussels' }
   };
 
   const allergyKeys = Object.keys(allergyTranslations);

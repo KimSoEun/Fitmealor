@@ -27,7 +27,7 @@ export default function Register() {
     'register.난류(계란)', 'register.우유', 'register.메밀', 'register.땅콩', 'register.대두', 'register.밀',
     'register.고등어', 'register.게', 'register.새우', 'register.돼지고기', 'register.복숭아', 'register.토마토',
     'register.아황산류', 'register.호두', 'register.닭고기', 'register.쇠고기', 'register.오징어', 'register.조개류',
-    'register.잣', 'register.호두류', 'register.아몬드', 'register.유당'
+    'register.잣', 'register.굴', 'register.전복', 'register.홍합'
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
