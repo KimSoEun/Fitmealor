@@ -485,10 +485,18 @@ const Home: React.FC = () => {
       console.log('Fetching recommendations with profile:', profile);
 
       // Validate that all required fields are present and not null/undefined
-      if (!profile.age || !profile.gender || !profile.height ||
-          !profile.weight || !profile.targetWeight ||
-          !profile.activityLevel || !profile.healthGoal) {
-        console.error('Profile is missing required fields:', profile);
+      const missingFields = [];
+      if (!profile.age) missingFields.push('age');
+      if (!profile.gender) missingFields.push('gender');
+      if (!profile.height) missingFields.push('height');
+      if (!profile.weight) missingFields.push('weight');
+      if (!profile.targetWeight) missingFields.push('targetWeight');
+      if (!profile.activityLevel) missingFields.push('activityLevel');
+      if (!profile.healthGoal) missingFields.push('healthGoal');
+
+      if (missingFields.length > 0) {
+        console.error('Profile is missing required fields:', missingFields);
+        console.error('Full profile:', profile);
         setRecommendations([]);
         setLoading(false);
         return;
@@ -1258,9 +1266,9 @@ const Home: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">추천 식단을 불러올 수 없습니다.</p>
+            <p className="text-gray-600">{t('home.추천_식단을_불러올_수_없습니다.')}</p>
             <Link to="/health-profile" className="text-blue-600 hover:text-blue-700 font-medium mt-2 inline-block">
-              건강 프로필을 설정해주세요 →
+              {t('home.건강_프로필을_설정해주세요_→')}
             </Link>
           </div>
         )}
