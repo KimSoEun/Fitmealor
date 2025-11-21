@@ -6,10 +6,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from app.core.config import get_settings
-
-# Get settings instance
-settings = get_settings()
+from app.core.config import settings
 
 # Secret key for JWT - in production, use environment variable
 SECRET_KEY = settings.JWT_SECRET

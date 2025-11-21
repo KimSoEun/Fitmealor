@@ -147,20 +147,32 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """Login user"""
+    print(f"Login attempt for email: {user_data.email}")
+
     # Find user by email
     user = db.query(User).filter(User.email == user_data.email).first()
     if not user:
+        print(f"User not found: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
 
+    print(f"User found: {user.email}, name: {user.name}")
+    print(f"Hashed password in DB: {user.hashed_password[:50]}...")
+
     # Verify password
-    if not verify_password(user_data.password, user.hashed_password):
+    password_valid = verify_password(user_data.password, user.hashed_password)
+    print(f"Password verification result: {password_valid}")
+
+    if not password_valid:
+        print(f"Password verification failed for user: {user.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
+
+    print(f"Login successful for user: {user.email}")
 
     # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

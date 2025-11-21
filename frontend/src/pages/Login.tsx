@@ -11,14 +11,19 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('Login form submitted');
     e.preventDefault();
 
+    console.log('Email:', email, 'Password:', password ? '***' : 'empty');
+
     if (!email || !password) {
+      console.log('Validation failed: missing email or password');
       setError(t('login.이메일과_비밀번호를_입력해주세요.'));
       return;
     }
 
     try {
+      console.log('Sending login request to backend...');
       // API 호출
       const response = await fetch('http://localhost:8000/api/v1/auth/login', {
         method: 'POST',
@@ -31,19 +36,24 @@ export default function Login() {
         }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
+        console.log('Login failed:', data.detail);
         setError(data.detail || t('login.로그인에_실패했습니다.'));
         return;
       }
 
       // 토큰 저장
+      console.log('Login successful, saving token...');
       localStorage.setItem('token', data.token);
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('userEmail', email);
 
       // 로그인 성공 시 홈으로 이동
+      console.log('Navigating to /home...');
       navigate('/home');
     } catch (error) {
       console.error('Login error:', error);

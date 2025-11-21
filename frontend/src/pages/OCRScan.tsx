@@ -281,13 +281,24 @@ export default function OCRScan() {
 
     setIsSaving(true);
     try {
-      // TODO: Call backend API to save product
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Call backend API to save product
       const response = await axios.post(
         'http://localhost:8000/api/v1/foods/register',
         {
           name: aggregatedData.product_name,
           allergens: aggregatedData.allergens,
           nutrition_info: aggregatedData.nutrition_info
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         }
       );
 
