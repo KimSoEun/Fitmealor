@@ -155,6 +155,50 @@ const Recommendations: React.FC = () => {
     }
   };
 
+  const handleMealClick = async (meal: Meal) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert(t('recommendations.로그인이_필요합니다'));
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/v1/history/recommendations/add', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          meal_code: meal.name,  // Use meal name as code
+          meal_name_ko: meal.name_kr || meal.name,
+          meal_name_en: meal.name_en || meal.name,
+          calories: Math.round(meal.calories),
+          carbohydrates: Math.round(meal.carbs_g),
+          protein: Math.round(meal.protein_g),
+          fat: Math.round(meal.fat_g),
+          sodium: 0,
+          recommendation_context: {
+            score: meal.score,
+            category: meal.category
+          }
+        })
+      });
+
+      if (response.ok) {
+        alert(t('recommendations.히스토리에_저장되었습니다'));
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to save to history:', errorData);
+        alert(t('recommendations.히스토리_저장_실패'));
+      }
+    } catch (error) {
+      console.error('Error saving to history:', error);
+      alert(t('recommendations.히스토리_저장_실패'));
+    }
+  };
+
   return (
     <div>
       <div className="mb-8">
@@ -176,7 +220,12 @@ const Recommendations: React.FC = () => {
       ) : recommendations.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recommendations.map((meal, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div
+              key={index}
+              onClick={() => handleMealClick(meal)}
+              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer hover:scale-105 transform"
+              title={t('recommendations.클릭하여_히스토리에_저장')}
+            >
               <div className="flex justify-between items-start mb-3">
                 <h3 className="text-lg font-semibold text-gray-900">{getDisplayName(meal)}</h3>
                 <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded">

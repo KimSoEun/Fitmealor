@@ -244,7 +244,7 @@ const Home: React.FC = () => {
   };
 
   // 식단 선택/해제 핸들러
-  const handleMealToggle = (meal: Meal) => {
+  const handleMealToggle = async (meal: Meal) => {
     const isSelected = selectedMeals.some(m => m.name === meal.name);
 
     if (isSelected) {
@@ -270,6 +270,47 @@ const Home: React.FC = () => {
         carbs: prev.carbs + meal.carbs_g,
         fat: prev.fat + meal.fat_g
       }));
+
+      // 히스토리에 저장
+      try {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          alert(currentLang === 'en' ? 'Login required' : '로그인이 필요합니다');
+          return;
+        }
+
+        const response = await fetch('http://localhost:8000/api/v1/history/recommendations/add', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            meal_code: meal.name,  // Use meal name as code
+            meal_name_ko: meal.name_kr || meal.name,
+            meal_name_en: meal.name_en || meal.name,
+            calories: Math.round(meal.calories),
+            carbohydrates: Math.round(meal.carbs_g),
+            protein: Math.round(meal.protein_g),
+            fat: Math.round(meal.fat_g),
+            sodium: 0,
+            recommendation_context: {
+              score: meal.score,
+              category: meal.category
+            }
+          })
+        });
+
+        if (response.ok) {
+          console.log('Meal saved to history:', meal.name);
+        } else {
+          const errorData = await response.json();
+          console.error('Failed to save to history:', errorData);
+        }
+      } catch (error) {
+        console.error('Error saving to history:', error);
+      }
     }
   };
 
