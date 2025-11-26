@@ -363,6 +363,7 @@ export default function Register() {
               >
                 <option value="체중감량">{t('register.체중감량')}</option>
                 <option value="체중유지">{t('register.체중유지')}</option>
+                <option value="체중증량">{t('register.체중증량')}</option>
                 <option value="근육증가">{t('register.근육증가')}</option>
               </select>
             </div>

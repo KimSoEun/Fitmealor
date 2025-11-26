@@ -35,6 +35,7 @@ export default function Layout({ children }: LayoutProps) {
                   <a href="/home" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_home')}</a>
                   <a href="/health-profile" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_health_profile')}</a>
                   <a href="/ocr-scan" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_ocr_scan')}</a>
+                  <a href="/my-products" className="text-gray-700 hover:text-green-600 px-3 py-2">{i18n.language === 'en' ? 'My Products' : '내 제품'}</a>
                   <a href="/history" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_history')}</a>
                   <a href="/favorites" className="text-gray-700 hover:text-green-600 px-3 py-2">{t('nav_favorites')}</a>
                   <button

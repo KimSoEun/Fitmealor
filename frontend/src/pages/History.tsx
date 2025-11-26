@@ -274,46 +274,46 @@ const History = () => {
 
                   {/* Nutrition Info */}
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
-                    {item.nutrition_info.calories && (
+                    {/* {item.nutrition_info.calories && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Calories' : '칼로리'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.calories} kcal</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.calories ?? 0} kcal</div>
                       </div>
-                    )}
-                    {item.nutrition_info.carbohydrates && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.carbohydrates && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Carbs' : '탄수화물'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.carbohydrates}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.carbohydrates ?? 0}g</div>
                       </div>
-                    )}
-                    {item.nutrition_info.protein && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.protein && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Protein' : '단백질'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.protein}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.protein ?? 0}g</div>
                       </div>
-                    )}
-                    {item.nutrition_info.fat && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.fat && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Fat' : '지방'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.fat}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.fat ?? 0}g</div>
                       </div>
-                    )}
-                    {item.nutrition_info.sodium && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.sodium && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Sodium' : '나트륨'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.sodium}mg</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.sodium ?? 0}mg</div>
                       </div>
-                    )}
+                    {/* )} */}
                   </div>
                 </div>
                 );
@@ -354,54 +354,54 @@ const History = () => {
 
                   {/* Nutrition Info */}
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-4">
-                    {item.nutrition_info.calories && (
+                    {/* {item.nutrition_info.calories && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Calories' : '칼로리'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.calories} kcal</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.calories ?? 0} kcal</div>
                       </div>
-                    )}
-                    {item.nutrition_info.carbohydrates && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.carbohydrates && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Carbs' : '탄수화물'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.carbohydrates}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.carbohydrates ?? 0}g</div>
                       </div>
-                    )}
-                    {item.nutrition_info.protein && (
+                    {/* )} */}
+                    {/* {(item.nutrition_info.protein || item.nutrition_info.protein==0) && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Protein' : '단백질'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.protein}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.protein ?? 0}g</div>
                       </div>
-                    )}
-                    {item.nutrition_info.fat && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.fat && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Fat' : '지방'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.fat}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.fat ?? 0}g</div>
                       </div>
-                    )}
-                    {item.nutrition_info.sodium && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.sodium && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Sodium' : '나트륨'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.sodium}mg</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.sodium ?? 0}mg</div>
                       </div>
-                    )}
-                    {item.nutrition_info.sugar && (
+                    {/* )} */}
+                    {/* {item.nutrition_info.sugar && ( */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="text-xs text-gray-500">
                           {i18n.language === 'en' ? 'Sugar' : '당류'}
                         </div>
-                        <div className="text-sm font-semibold">{item.nutrition_info.sugar}g</div>
+                        <div className="text-sm font-semibold">{item.nutrition_info.sugar ?? 0}g</div>
                       </div>
-                    )}
+                    {/* )} */}
                   </div>
                 </div>
               ))

@@ -219,3 +219,142 @@ async def get_product(
             status_code=500,
             detail=f"Failed to get product: {str(e)}"
         )
+
+
+@router.put("/products/{product_id}")
+async def update_product(
+    product_id: int,
+    request: RegisterProductRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update a food product
+
+    Args:
+        product_id: Product ID
+        request: Updated product information
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        Updated product details
+    """
+    try:
+        # Find product
+        product = db.query(FoodProduct)\
+            .filter(FoodProduct.id == product_id, FoodProduct.user_id == current_user.id)\
+            .first()
+
+        if not product:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Product with ID {product_id} not found"
+            )
+
+        # Update fields
+        if request.name and request.name.strip():
+            product.name = request.name.strip()
+
+        if request.allergens is not None:
+            product.allergens = request.allergens
+
+        if request.nutrition_info:
+            if request.nutrition_info.calories is not None:
+                product.calories = request.nutrition_info.calories
+            if request.nutrition_info.carbohydrates is not None:
+                product.carbohydrates = request.nutrition_info.carbohydrates
+            if request.nutrition_info.protein is not None:
+                product.protein = request.nutrition_info.protein
+            if request.nutrition_info.fat is not None:
+                product.fat = request.nutrition_info.fat
+            if request.nutrition_info.sodium is not None:
+                product.sodium = request.nutrition_info.sodium
+            if request.nutrition_info.sugar is not None:
+                product.sugar = request.nutrition_info.sugar
+
+        # Save changes
+        db.commit()
+        db.refresh(product)
+
+        logger.info(f"Updated product: {product.name} (ID: {product.id}) for user {current_user.id}")
+
+        return {
+            "success": True,
+            "product": {
+                "id": product.id,
+                "name": product.name,
+                "allergens": product.allergens,
+                "nutrition_info": {
+                    "calories": product.calories,
+                    "carbohydrates": product.carbohydrates,
+                    "protein": product.protein,
+                    "fat": product.fat,
+                    "sodium": product.sodium,
+                    "sugar": product.sugar
+                },
+                "created_at": product.created_at.isoformat() if product.created_at else None,
+                "updated_at": product.updated_at.isoformat() if product.updated_at else None
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating product: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update product: {str(e)}"
+        )
+
+
+@router.delete("/products/{product_id}")
+async def delete_product(
+    product_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a food product
+
+    Args:
+        product_id: Product ID
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        Success status
+    """
+    try:
+        # Find product
+        product = db.query(FoodProduct)\
+            .filter(FoodProduct.id == product_id, FoodProduct.user_id == current_user.id)\
+            .first()
+
+        if not product:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Product with ID {product_id} not found"
+            )
+
+        # Delete product
+        db.delete(product)
+        db.commit()
+
+        logger.info(f"Deleted product: {product.name} (ID: {product.id}) for user {current_user.id}")
+
+        return {
+            "success": True,
+            "message": "Product deleted successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting product: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete product: {str(e)}"
+        )

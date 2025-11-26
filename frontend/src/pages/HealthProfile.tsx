@@ -102,6 +102,8 @@ export default function HealthProfile() {
       'Weight Loss': 0.8,
       '체중유지': 1.0,
       'Maintain Weight': 1.0,
+      '체중증량': 1.15,
+      'Weight Gain': 1.15,
       '근육증가': 1.1,
       'Muscle Gain': 1.1
     };
@@ -113,6 +115,8 @@ export default function HealthProfile() {
       'Weight Loss': { protein: 0.40, carbs: 0.35, fat: 0.25 },
       '체중유지': { protein: 0.25, carbs: 0.50, fat: 0.25 },
       'Maintain Weight': { protein: 0.25, carbs: 0.50, fat: 0.25 },
+      '체중증량': { protein: 0.25, carbs: 0.55, fat: 0.20 },
+      'Weight Gain': { protein: 0.25, carbs: 0.55, fat: 0.20 },
       '근육증가': { protein: 0.30, carbs: 0.50, fat: 0.20 },
       'Muscle Gain': { protein: 0.30, carbs: 0.50, fat: 0.20 }
     };
@@ -349,6 +353,7 @@ export default function HealthProfile() {
               >
                 <option value="체중감량">{t('healthprofile.체중감량')}</option>
                 <option value="체중유지">{t('healthprofile.체중유지')}</option>
+                <option value="체중증량">{t('healthprofile.체중증량')}</option>
                 <option value="근육증가">{t('healthprofile.근육증가')}</option>
               </select>
             </div>

@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import HealthProfile from './pages/HealthProfile';
 import OCRScan from './pages/OCRScan';
+import MyProducts from './pages/MyProducts';
 import Recommendations from './pages/Recommendations';
 import Favorites from './pages/Favorites';
 import History from './pages/History';
@@ -36,6 +37,7 @@ function App() {
           <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/health-profile" element={<ProtectedRoute><HealthProfile /></ProtectedRoute>} />
           <Route path="/ocr-scan" element={<ProtectedRoute><OCRScan /></ProtectedRoute>} />
+          <Route path="/my-products" element={<ProtectedRoute><MyProducts /></ProtectedRoute>} />
           <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
           <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />

@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 interface NutritionInfo {
-  calories?: number | null;
-  carbohydrates?: number | null;
-  protein?: number | null;
-  fat?: number | null;
-  sodium?: number | null;
-  sugar?: number | null;
+  calories?: number | 0;
+  carbohydrates?: number | 0;
+  protein?: number | 0;
+  fat?: number | 0;
+  sodium?: number | 0;
+  sugar?: number | 0;
 }
 
 interface ExtractedData {

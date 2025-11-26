@@ -419,9 +419,11 @@ async def recommend_meals(request: RecommendationRequest):
         # Adjust for health goal
         if request.health_goal == "체중감량":
             target_calories = tdee * 0.85  # 15% deficit
-        elif request.health_goal == "근육증가":
-            target_calories = tdee * 1.10  # 10% surplus
-        else:  # 체중유지
+        elif request.health_goal == "체중증량":
+            target_calories = tdee * 1.15  # 15% surplus
+        # elif request.health_goal == "근육증가":
+            # target_calories = tdee * 1.10  # 10% surplus
+        else:  # 체중유지, 근육증가
             target_calories = tdee
 
         # Calculate macro targets based on health goal (BEFORE filtering)
@@ -441,10 +443,18 @@ async def recommend_meals(request: RecommendationRequest):
             fat_calories = target_fat_g * 9
             carbs_calories = target_calories - protein_calories - fat_calories
             target_carbs_g = carbs_calories / 4
+        elif request.health_goal == "체중증량":
+            # Moderate protein, higher carbs for weight gain
+            target_protein_g = request.weight_kg * 2.0  # 2g per kg
+            target_fat_g = request.weight_kg * 0.9  # 0.9g per kg
+            protein_calories = target_protein_g * 4
+            fat_calories = target_fat_g * 9
+            carbs_calories = target_calories - protein_calories - fat_calories
+            target_carbs_g = carbs_calories / 4
         else:  # 체중유지
             # Balanced macros
             target_protein_g = request.weight_kg * 1.6  # 1.6g per kg
-            target_fat_g = request.weight_kg * 0.9  # 0.9g per kg
+            target_fat_g = request.weight_kg * 1.0  # 1g per kg
             protein_calories = target_protein_g * 4
             fat_calories = target_fat_g * 9
             carbs_calories = target_calories - protein_calories - fat_calories
@@ -485,7 +495,8 @@ async def recommend_meals(request: RecommendationRequest):
                 fat_ratio = meal["fat_g"] / total_macros
 
                 # Skip if any single macro is more than 95% (e.g., pure oil/sugar)
-                if protein_ratio > 0.95 or carbs_ratio > 0.95 or fat_ratio > 0.95:
+                if carbs_ratio > 0.95 or fat_ratio > 0.95:
+                # if protein_ratio > 0.95 or carbs_ratio > 0.95 or fat_ratio > 0.95:
                     continue
 
                 # Skip if protein is less than 5% (except for very low calorie meals)
