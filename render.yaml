@@ -1,0 +1,38 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: fitmealor-backend
+    runtime: python
+    region: singapore
+    plan: free
+    branch: main
+    rootDir: backend/fastapi-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: False
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        value: redis://localhost:6379
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CLOVA_OCR_SECRET
+        sync: false
+      - key: CLOVA_OCR_URL
+        sync: false
+
+  # PostgreSQL Database (Free tier - 90 days)
+  - type: pserv
+    name: fitmealor-db
+    runtime: postgresql
+    region: singapore
+    plan: free
+    databaseName: fitmealor
+    databaseUser: fitmealor_user
